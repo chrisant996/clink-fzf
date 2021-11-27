@@ -117,13 +117,25 @@ local function replace_dir(str, line_state)
     if line_state:getwordcount() > 0 then
         local info = line_state:getwordinfo(line_state:getwordcount())
         if info then
-            local word = line_state:getline():sub(info.offset, line_state:getcursor())
+            local word = till_cursor(line_state, info.offset)
             if word and #word > 0 then
                 dir = word
             end
         end
     end
     return str:gsub('$dir', dir)
+end
+
+local function till_cursor(line_state, start)
+    return line_state:getline():sub(start or 1, line_state:getcursor())
+end
+
+local function quote_arg(arg)
+    return '"'..arg:gsub('"', '\\"')..'"'
+end
+
+local function escape_cmd(cmd)
+    return cmd:gsub('[|&<>%%^()@!]', '^%0')
 end
 
 --------------------------------------------------------------------------------
@@ -139,7 +151,7 @@ function fzf_complete(rl_buffer)
     rl_buffer:refreshline()
 end
 
-function fzf_history(rl_buffer)
+function fzf_history(rl_buffer, line_state)
     local clink_command = get_clink()
     if #clink_command == 0 then
         rl_buffer:ding()
@@ -152,14 +164,8 @@ function fzf_history(rl_buffer)
         history = history..' --diag'
     end
 
-    -- This intentionally does not use '--query' because that isn't safe:
-    -- Depending on what the user has typed so far, passing it as an argument
-    -- may cause the command to interpreted differently than expected.
-    -- E.g. suppose the user typed:     "pgm.exe & rd /s
-    -- Then fzf would be invoked as:    fzf.exe --query""pgm.exe & rd /s"
-    -- And since the & is not inside quotes, the 'rd /s' command gets actually
-    -- run by mistake!
-    local r = io.popen(history..' | '..get_fzf("FZF_CTRL_R_OPTS")..' -i --tac')
+    local fzf_command = get_fzf('FZF_CTRL_R_OPTS')..' -i --tac --query '..quote_arg(till_cursor(line_state))
+    local r = io.popen('"'..history..' | '..escape_cmd(fzf_command)..'"')
     if not r then
         rl_buffer:ding()
         return
@@ -188,7 +194,6 @@ function fzf_file(rl_buffer, line_state)
 
     ctrl_t_command = replace_dir(ctrl_t_command, line_state)
 
-print('"'..ctrl_t_command..'"')
     local r = io.popen(ctrl_t_command..' | '..get_fzf('FZF_CTRL_T_OPTS')..' -i -m')
     if not r then
         rl_buffer:ding()

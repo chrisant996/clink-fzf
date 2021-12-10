@@ -131,7 +131,7 @@ local function till_cursor(line_state, start)
 end
 
 local function quote_arg(arg)
-    return '"'..arg:gsub('"', '\\"')..'"'
+    return '"'..arg:gsub('(\\+)"', '%1%1"'):gsub('"', '\\"')..'"'
 end
 
 local function escape_cmd(cmd)

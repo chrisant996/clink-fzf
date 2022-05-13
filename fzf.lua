@@ -159,7 +159,7 @@ function fzf_history(rl_buffer)
     -- Then fzf would be invoked as:    fzf.exe --query""pgm.exe & rd /s"
     -- And since the & is not inside quotes, the 'rd /s' command gets actually
     -- run by mistake!
-    local r = io.popen(history..' | '..get_fzf("FZF_CTRL_R_OPTS")..' -i --tac')
+    local r = io.popen(history..' 2>nul | '..get_fzf("FZF_CTRL_R_OPTS")..' -i --tac')
     if not r then
         rl_buffer:ding()
         return
@@ -188,7 +188,7 @@ function fzf_file(rl_buffer, line_state)
 
     ctrl_t_command = replace_dir(ctrl_t_command, line_state)
 
-    local r = io.popen(ctrl_t_command..' | '..get_fzf('FZF_CTRL_T_OPTS')..' -i -m')
+    local r = io.popen(ctrl_t_command..' 2>nul | '..get_fzf('FZF_CTRL_T_OPTS')..' -i -m')
     if not r then
         rl_buffer:ding()
         return
@@ -220,7 +220,7 @@ function fzf_directory(rl_buffer, line_state)
     alt_c_command = replace_dir(alt_c_command, line_state)
 
     local temp_contents = rl_buffer:getbuffer()
-    local r = io.popen(alt_c_command..' | '..get_fzf('FZF_ALT_C_OPTS')..' -i')
+    local r = io.popen(alt_c_command..' 2>nul | '..get_fzf('FZF_ALT_C_OPTS')..' -i')
     if not r then
         rl_buffer:ding()
         return

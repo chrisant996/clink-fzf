@@ -200,6 +200,9 @@ function fzf_file(rl_buffer, line_state)
     r:close()
 
     if #str > 0 then
+        if str:find("[ &()[%]{}^=;!%%'+,`~]") then
+            str = '"'..str..'"'
+        end
         rl_buffer:insert(str)
     end
 

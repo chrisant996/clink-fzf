@@ -188,7 +188,6 @@ function fzf_file(rl_buffer, line_state)
 
     ctrl_t_command = replace_dir(ctrl_t_command, line_state)
 
-print('"'..ctrl_t_command..'"')
     local r = io.popen(ctrl_t_command..' | '..get_fzf('FZF_CTRL_T_OPTS')..' -i -m')
     if not r then
         rl_buffer:ding()

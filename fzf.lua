@@ -159,7 +159,7 @@ function fzf_history(rl_buffer)
     -- Then fzf would be invoked as:    fzf.exe --query""pgm.exe & rd /s"
     -- And since the & is not inside quotes, the 'rd /s' command gets actually
     -- run by mistake!
-    local r = io.popen(history..' 2>nul | '..get_fzf("FZF_CTRL_R_OPTS")..' -i --tac')
+    local r = io.popen(history..' 2>nul | '..get_fzf('FZF_CTRL_R_OPTS')..' -i --tac')
     if not r then
         rl_buffer:ding()
         return
@@ -209,7 +209,7 @@ end
 function fzf_directory(rl_buffer, line_state)
     local alt_c_opts = os.getenv('FZF_ALT_C_OPTS')
     if not alt_c_opts then
-        alt_c_opts = ""
+        alt_c_opts = ''
     end
 
     local alt_c_command = os.getenv('FZF_ALT_C_COMMAND')
@@ -288,7 +288,7 @@ local function filter_matches(matches, completion_type, filename_completion_desi
     end
 
     -- Start fzf.
-    local r,w = io.popenrw(get_fzf("FZF_COMPLETE_OPTS"))
+    local r,w = io.popenrw(get_fzf('FZF_COMPLETE_OPTS'))
     if not r or not w then
         return
     end

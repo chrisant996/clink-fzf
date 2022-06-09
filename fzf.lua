@@ -73,6 +73,7 @@ end
 
 local diag = false
 local fzf_complete_intercept = false
+local fzf_trigger_search = nil
 
 local function get_fzf(env)
     local height = settings.get('fzf.height')
@@ -112,30 +113,50 @@ local function get_clink()
     return clink_alias:gsub(' $[*]', '')
 end
 
-local function replace_dir(str, line_state)
-    local dir = '.'
+local function replace_dir(str, word)
+    return str:gsub('$dir', word or '.')
+end
+
+local function get_word_at_cursor(line_state)
     if line_state:getwordcount() > 0 then
         local info = line_state:getwordinfo(line_state:getwordcount())
         if info then
             local word = line_state:getline():sub(info.offset, line_state:getcursor())
             if word and #word > 0 then
-                dir = word
+                return word
             end
         end
     end
-    return str:gsub('$dir', dir)
+end
+
+local function get_ctrl_t_command(word)
+    local ctrl_t_command = os.getenv('FZF_CTRL_T_COMMAND')
+    if not ctrl_t_command then
+        ctrl_t_command = 'dir /b /s /a:-s $dir'
+    end
+    ctrl_t_command = replace_dir(ctrl_t_command, word)
+    return ctrl_t_command
+end
+
+local function is_trigger(line_state)
+    local info = line_state:getwordinfo(line_state:getwordcount())
+    if line_state:getline():sub(line_state:getcursor() - 2, line_state:getcursor() - 1) == '**' then
+        return line_state:getline():sub(info.offset, line_state:getcursor() - 3)
+    end
 end
 
 --------------------------------------------------------------------------------
 -- Functions for use with 'luafunc:' key bindings.
 
-function fzf_complete(rl_buffer)
+function fzf_complete(rl_buffer, line_state)
     fzf_complete_intercept = true
+    fzf_trigger_search = is_trigger(line_state)
     rl.invokecommand('complete')
     if fzf_complete_intercept then
         rl_buffer:ding()
     end
     fzf_complete_intercept = false
+    fzf_trigger_search = nil
     rl_buffer:refreshline()
 end
 
@@ -181,12 +202,8 @@ function fzf_history(rl_buffer)
 end
 
 function fzf_file(rl_buffer, line_state)
-    local ctrl_t_command = os.getenv('FZF_CTRL_T_COMMAND')
-    if not ctrl_t_command then
-        ctrl_t_command = 'dir /b /s /a:-s $dir'
-    end
-
-    ctrl_t_command = replace_dir(ctrl_t_command, line_state)
+    local dir = get_word_at_cursor(line_state)
+    local ctrl_t_command = get_ctrl_t_command(dir)
 
     local r = io.popen(ctrl_t_command..' 2>nul | '..get_fzf('FZF_CTRL_T_OPTS')..' -i -m')
     if not r then
@@ -291,16 +308,28 @@ local function filter_matches(matches, completion_type, filename_completion_desi
     end
 
     -- Start fzf.
-    local r,w = io.popenrw(get_fzf('FZF_COMPLETE_OPTS'))
-    if not r or not w then
-        return
-    end
+    local r,w
+    if fzf_trigger_search then
+        local dir, word
+        dir = path.getdirectory(fzf_trigger_search)
+        word = path.getname(fzf_trigger_search)
+        local ctrl_t_command = get_ctrl_t_command(dir)
+        r = io.popen(ctrl_t_command..' 2>nul | '..get_fzf('FZF_COMPLETE_OPTS')..' -q "'..word..'"')
+        if not r then
+            return
+        end
+    else
+        r,w = io.popenrw(get_fzf('FZF_COMPLETE_OPTS'))
+        if not r or not w then
+            return
+        end
 
-    -- Write matches to the write pipe.
-    for _,m in ipairs(matches) do
-        w:write(m.match..'\n')
+        -- Write matches to the write pipe.
+        for _,m in ipairs(matches) do
+            w:write(m.match..'\n')
+        end
+        w:close()
     end
-    w:close()
 
     -- Read filtered matches.
     local ret = {}
@@ -319,6 +348,7 @@ local function filter_matches(matches, completion_type, filename_completion_desi
 
     -- Yay, successful; clear it to not ding.
     fzf_complete_intercept = false
+    fzf_trigger_search = nil
     return ret
 end
 
@@ -332,5 +362,6 @@ end
 
 clink.onbeginedit(function ()
     fzf_complete_intercept = false
+    fzf_trigger_search = nil
 end)
 

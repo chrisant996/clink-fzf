@@ -114,6 +114,9 @@ local function get_clink()
 end
 
 local function replace_dir(str, word)
+    if word then
+        word = rl.expandtilde(word)
+    end
     return str:gsub('$dir', word or '.')
 end
 

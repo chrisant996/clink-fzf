@@ -132,13 +132,22 @@ local function get_word_at_cursor(line_state)
     end
 end
 
-local function get_ctrl_t_command(word)
-    local ctrl_t_command = os.getenv('FZF_CTRL_T_COMMAND')
-    if not ctrl_t_command then
-        ctrl_t_command = 'dir /b /s /a:-s $dir'
+local function get_ctrl_t_command(dir)
+    local command = os.getenv('FZF_CTRL_T_COMMAND')
+    if not command then
+        command = 'dir /b /s /a:-s $dir'
     end
-    ctrl_t_command = replace_dir(ctrl_t_command, word)
-    return ctrl_t_command
+    command = replace_dir(command, dir)
+    return command
+end
+
+local function get_alt_c_command(dir)
+    local command = os.getenv('FZF_ALT_C_COMMAND')
+    if not command then
+        command = 'dir /b /s /a:d-s $dir'
+    end
+    command = replace_dir(command, dir)
+    return command
 end
 
 local function is_trigger(line_state)
@@ -206,9 +215,9 @@ end
 
 function fzf_file(rl_buffer, line_state)
     local dir = get_word_at_cursor(line_state)
-    local ctrl_t_command = get_ctrl_t_command(dir)
+    local command = get_ctrl_t_command(dir)
 
-    local r = io.popen(ctrl_t_command..' 2>nul | '..get_fzf('FZF_CTRL_T_OPTS')..' -i -m')
+    local r = io.popen(command..' 2>nul | '..get_fzf('FZF_CTRL_T_OPTS')..' -i -m')
     if not r then
         rl_buffer:ding()
         return
@@ -230,20 +239,11 @@ function fzf_file(rl_buffer, line_state)
 end
 
 function fzf_directory(rl_buffer, line_state)
-    local alt_c_opts = os.getenv('FZF_ALT_C_OPTS')
-    if not alt_c_opts then
-        alt_c_opts = ''
-    end
-
-    local alt_c_command = os.getenv('FZF_ALT_C_COMMAND')
-    if not alt_c_command then
-        alt_c_command = 'dir /b /s /a:d-s $dir'
-    end
-
-    alt_c_command = replace_dir(alt_c_command, line_state)
+    local dir = get_word_at_cursor(line_state)
+    local command = get_alt_c_command(dir)
 
     local temp_contents = rl_buffer:getbuffer()
-    local r = io.popen(alt_c_command..' 2>nul | '..get_fzf('FZF_ALT_C_OPTS')..' -i')
+    local r = io.popen(command..' 2>nul | '..get_fzf('FZF_ALT_C_OPTS')..' -i')
     if not r then
         rl_buffer:ding()
         return

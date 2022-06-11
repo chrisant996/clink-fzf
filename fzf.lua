@@ -21,6 +21,7 @@
 "\C-r":        "luafunc:fzf_history"    # Ctrl+R lists history entries; choose one to insert it.
 "\M-c":        "luafunc:fzf_directory"  # Alt+C lists subdirectories; choose one to 'cd /d' to it.
 "\M-b":        "luafunc:fzf_bindings"   # Alt+B lists key bindings; choose one to invoke it.
+"\t":          "luafunc:fzf_complete"   # Tab uses fzf to filter match completions.
 "\e[27;5;32~": "luafunc:fzf_complete"   # Ctrl+Space uses fzf to filter match completions.
 
 ]]
@@ -63,6 +64,7 @@ if rl.setbinding then
         rl.setbinding([["\C-r"]], [["luafunc:fzf_history"]])
         rl.setbinding([["\M-c"]], [["luafunc:fzf_directory"]])
         rl.setbinding([["\M-b"]], [["luafunc:fzf_bindings"]])
+        rl.setbinding([["\t"]], [["luafunc:fzf_complete"]])
         rl.setbinding([["\e[27;5;32~"]], [["luafunc:fzf_complete"]])
     end
 

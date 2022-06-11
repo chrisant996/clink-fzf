@@ -359,6 +359,14 @@ local interceptor = clink.generator(0)
 function interceptor:generate(line_state, match_builder)
     if fzf_complete_intercept then
         clink.onfiltermatches(filter_matches)
+        if fzf_trigger_search then
+            -- Add fake matches to prevent short circuiting, and to guarantee
+            -- that filter_matches gets called.
+            match_builder:addmatch(fzf_trigger_search..'x')
+            match_builder:addmatch(fzf_trigger_search..'y')
+            match_builder:addmatch(fzf_trigger_search..'z')
+            return true
+        end
     end
     return false
 end

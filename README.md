@@ -20,9 +20,19 @@ Key | Description
 <kbd>Ctrl</kbd>+<kbd>R</kbd>     | Lists history entries; choose one to insert it.
 <kbd>Alt</kbd>+<kbd>C</kbd>      | Lists subdirectories; choose one to 'cd /d' to it.
 <kbd>Alt</kbd>+<kbd>B</kbd>      | Lists key bindings; choose one to invoke it.
+<kbd>Tab</kbd>                   | Uses fzf to filter match completions.
 <kbd>Ctrl</kbd>+<kbd>Space</kbd> | Uses fzf to filter match completions.
 
 > **Note:** For the default key bindings to work, you must be using Clink v1.2.46 or higher.  If you're using an older version of Clink then consider upgrading Clink, or manually add key bindings in your .inputrc file as described below.
+
+## Recursive completion
+
+You can use `**`<kbd>Tab</kbd> to list files recursively under the directory.
+
+For example:
+- `notepad **` lists files recursively under the current directory.
+- `notepad foo**` lists files recursively under the current directory, and uses `foo` as the search phrase.
+- `notepad bar\foo**` lists files recursively under the `bar` directory, and uses `foo` as the search phrase.
 
 # Overriding the default behaviors
 
@@ -42,6 +52,7 @@ The default key bindings for FZF are listed here in .inputrc file format for con
 "\C-r":        "luafunc:fzf_history"    # Ctrl+R lists history entries; choose one to insert it.
 "\M-c":        "luafunc:fzf_directory"  # Alt+C lists subdirectories; choose one to 'cd /d' to it.
 "\M-b":        "luafunc:fzf_bindings"   # Alt+B lists key bindings; choose one to invoke it.
+"\t":          "luafunc:fzf_complete"   # Tab uses fzf to filter match completions.
 "\e[27;5;32~": "luafunc:fzf_complete"   # Ctrl+Space uses fzf to filter match completions.
 ```
 

@@ -323,6 +323,8 @@ local function filter_matches(matches, completion_type, filename_completion_desi
         if not r then
             return
         end
+    elseif #matches <= 1 then
+        return
     else
         r,w = io.popenrw(get_fzf('FZF_COMPLETE_OPTS'))
         if not r or not w then

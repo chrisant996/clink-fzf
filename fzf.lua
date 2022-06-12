@@ -17,12 +17,12 @@
 --[[
 
 # Default key bindings for fzf with Clink.
-"\C-t":        "luafunc:fzf_file"       # Ctrl+T lists files recursively; choose one or multiple to insert them.
-"\C-r":        "luafunc:fzf_history"    # Ctrl+R lists history entries; choose one to insert it.
-"\M-c":        "luafunc:fzf_directory"  # Alt+C lists subdirectories; choose one to 'cd /d' to it.
-"\M-b":        "luafunc:fzf_bindings"   # Alt+B lists key bindings; choose one to invoke it.
-"\t":          "luafunc:fzf_complete"   # Tab uses fzf to filter match completions.
-"\e[27;5;32~": "luafunc:fzf_complete"   # Ctrl+Space uses fzf to filter match completions.
+"\C-t":        "luafunc:fzf_file"           # Ctrl+T lists files recursively; choose one or multiple to insert them.
+"\C-r":        "luafunc:fzf_history"        # Ctrl+R lists history entries; choose one to insert it.
+"\M-c":        "luafunc:fzf_directory"      # Alt+C lists subdirectories; choose one to 'cd /d' to it.
+"\M-b":        "luafunc:fzf_bindings"       # Alt+B lists key bindings; choose one to invoke it.
+"\t":          "luafunc:fzf_complete"       # Tab uses fzf to filter match completions, but only when preceded by '**' (recursive).
+"\e[27;5;32~": "luafunc:fzf_complete_force" # Ctrl+Space uses fzf to filter match completions (and supports '**' for recursive).
 
 ]]
 --  4.  Optional:  You can use your own custom key bindings if you want.
@@ -37,10 +37,12 @@
 --          FZF_CTRL_R_OPTS     = fzf options for fzf_history() function.
 --          FZF_ALT_C_OPTS      = fzf options for fzf_directory() function.
 --          FZF_BINDINGS_OPTS   = fzf options for fzf_bindings() function.
---          FZF_COMPLETE_OPTS   = fzf options for fzf_complete() function.
+--          FZF_COMPLETE_OPTS   = fzf options for fzf_complete() and fzf_complete_force() functions.
 --
 --          FZF_CTRL_T_COMMAND  = command to run for collecting files for fzf_file() function.
 --          FZF_ALT_C_COMMAND   = command to run for collecting directories for fzf_directory() function.
+--
+--          FZF_COMPLETION_DIR_COMMANDS = commands that should complete only directories, separated by spaces.
 
 --------------------------------------------------------------------------------
 -- Compatibility check.
@@ -65,7 +67,7 @@ if rl.setbinding then
         rl.setbinding([["\M-c"]], [["luafunc:fzf_directory"]])
         rl.setbinding([["\M-b"]], [["luafunc:fzf_bindings"]])
         rl.setbinding([["\t"]], [["luafunc:fzf_complete"]])
-        rl.setbinding([["\e[27;5;32~"]], [["luafunc:fzf_complete"]])
+        rl.setbinding([["\e[27;5;32~"]], [["luafunc:fzf_complete_force"]])
     end
 
 end
@@ -76,6 +78,7 @@ end
 local diag = false
 local fzf_complete_intercept = false
 local fzf_trigger_search = nil
+local fzf_dirs_only = nil
 
 local function get_fzf(env)
     local height = settings.get('fzf.height')
@@ -159,19 +162,46 @@ local function is_trigger(line_state)
     end
 end
 
+local function is_dir_command(line_state)
+    local command = line_state:getword(1)
+    local dir_commands = os.getenv('FZF_COMPLETION_DIR_COMMANDS') or 'cd chdir rd rmdir pushd'
+    for _,c in ipairs(string.explode(dir_commands)) do
+        if string.equalsi(c, command) then
+            return true
+        end
+    end
+end
+
+local function fzf_complete_internal(rl_buffer, line_state, force)
+    local trigger = is_trigger(line_state)
+    if trigger or force then
+        fzf_complete_intercept = true
+        fzf_trigger_search = trigger
+        fzf_dirs_only = is_dir_command(line_state)
+    end
+
+    rl.invokecommand('complete')
+
+    if trigger or force then
+        if fzf_complete_intercept then
+            rl_buffer:ding()
+        end
+        fzf_complete_intercept = false
+        fzf_trigger_search = nil
+        fzf_dirs_only = nil
+        rl_buffer:refreshline()
+    end
+end
+
 --------------------------------------------------------------------------------
 -- Functions for use with 'luafunc:' key bindings.
 
 function fzf_complete(rl_buffer, line_state)
-    fzf_complete_intercept = true
-    fzf_trigger_search = is_trigger(line_state)
-    rl.invokecommand('complete')
-    if fzf_complete_intercept then
-        rl_buffer:ding()
-    end
-    fzf_complete_intercept = false
-    fzf_trigger_search = nil
-    rl_buffer:refreshline()
+    fzf_complete_internal(rl_buffer, line_state, false)
+end
+
+function fzf_complete_force(rl_buffer, line_state)
+    fzf_complete_internal(rl_buffer, line_state, true)
 end
 
 function fzf_history(rl_buffer)
@@ -318,8 +348,15 @@ local function filter_matches(matches, completion_type, filename_completion_desi
         local dir, word
         dir = path.getdirectory(fzf_trigger_search)
         word = path.getname(fzf_trigger_search)
-        local ctrl_t_command = get_ctrl_t_command(dir)
-        r = io.popen(ctrl_t_command..' 2>nul | '..get_fzf('FZF_COMPLETE_OPTS')..' -q "'..word..'"')
+
+        local command
+        if fzf_dirs_only then
+            command = get_alt_c_command(dir)
+        else
+            command = get_ctrl_t_command(dir)
+        end
+
+        r = io.popen(command..' 2>nul | '..get_fzf('FZF_COMPLETE_OPTS')..' -q "'..word..'"')
         if not r then
             return
         end

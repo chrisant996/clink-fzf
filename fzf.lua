@@ -77,8 +77,6 @@ end
 
 local diag = false
 local fzf_complete_intercept = false
-local fzf_trigger_search = nil
-local fzf_dirs_only = nil
 
 local function get_fzf(env)
     local height = settings.get('fzf.height')
@@ -118,9 +116,20 @@ local function get_clink()
     return clink_alias:gsub(' $[*]', '')
 end
 
+local function need_quote(word)
+    return word and word:find("[ &()[%]{}^=;!%'+,`~]") and true
+end
+
+local function maybe_quote(word)
+    if need_quote(word) then
+        word = '"' .. word .. '"'
+    end
+    return word
+end
+
 local function replace_dir(str, word)
     if word then
-        word = rl.expandtilde(word)
+        word = maybe_quote(rl.expandtilde(word))
     end
     return str:gsub('$dir', word or '.')
 end
@@ -129,10 +138,35 @@ local function get_word_at_cursor(line_state)
     if line_state:getwordcount() > 0 then
         local info = line_state:getwordinfo(line_state:getwordcount())
         if info then
-            local word = line_state:getline():sub(info.offset, line_state:getcursor())
+            local line = line_state:getline()
+            local word = line:sub(info.offset, line_state:getcursor() - 1)
             if word and #word > 0 then
+                word = word:gsub('"', '')
+                word = word:gsub("'", '')
                 return word
             end
+        end
+    end
+end
+
+local function get_word_insert_bounds(line_state)
+    if line_state:getwordcount() > 0 then
+        local info = line_state:getwordinfo(line_state:getwordcount())
+        if info then
+            local first = info.offset
+            local last = line_state:getcursor() - 1
+            local quote
+            local delimit
+            if info.quoted then
+                local line = line_state:getline()
+                first = first - 1
+                quote = line:sub(first, first)
+                local eq = line:sub(last + 1, last + 1)
+                if eq == '' or eq == ' ' or eq == '\t' then
+                    delimit = true
+                end
+            end
+            return first, last, quote, delimit
         end
     end
 end
@@ -156,9 +190,9 @@ local function get_alt_c_command(dir)
 end
 
 local function is_trigger(line_state)
-    local info = line_state:getwordinfo(line_state:getwordcount())
-    if line_state:getline():sub(line_state:getcursor() - 2, line_state:getcursor() - 1) == '**' then
-        return line_state:getline():sub(info.offset, line_state:getcursor() - 3)
+    local word = get_word_at_cursor(line_state)
+    if word and word:sub(#word - 1) == '**' then
+        return word:sub(1, #word - 2)
     end
 end
 
@@ -172,23 +206,74 @@ local function is_dir_command(line_state)
     end
 end
 
-local function fzf_complete_internal(rl_buffer, line_state, force)
-    local trigger = is_trigger(line_state)
-    if trigger or force then
-        fzf_complete_intercept = true
-        fzf_trigger_search = trigger
-        fzf_dirs_only = is_dir_command(line_state)
+local function fzf_recursive(rl_buffer, line_state, search, quote, dirs_only)
+    local dir, word
+    dir = path.getdirectory(search)
+    word = path.getname(search)
+
+    local command
+    if dirs_only then
+        command = get_alt_c_command(dir)
+    else
+        command = get_ctrl_t_command(dir)
     end
 
-    rl.invokecommand('complete')
+    local first, last, has_quote, delimit = get_word_insert_bounds(line_state)
+    local quote = has_quote or '"'
 
-    if trigger or force then
+    local r = io.popen(command..' 2>nul | '..get_fzf('FZF_COMPLETE_OPTS')..' -q "'..word..'"')
+    if not r then
+        rl_buffer:ding()
+        return
+    end
+
+    -- Read filtered matches.
+    local match
+    while (true) do
+        local line = r:read('*line')
+        if not line then
+            break
+        end
+        if not match then
+            match = line
+        end
+    end
+    r:close()
+
+    if not match then
+        return
+    end
+
+    -- Insert match.
+    local use_quote = ((has_quote or need_quote(match)) and quote) or ''
+    rl_buffer:beginundogroup()
+    rl_buffer:remove(first, last + 1)
+    rl_buffer:setcursor(first)
+    rl_buffer:insert(use_quote)
+    rl_buffer:insert(match)
+    rl_buffer:insert(use_quote)
+    rl_buffer:insert(' ')
+    rl_buffer:endundogroup()
+end
+
+local function fzf_complete_internal(rl_buffer, line_state, force)
+    local search = is_trigger(line_state)
+    if search then
+        -- Gather files and/or dirs recursively, and show them in fzf.
+        local dirs_only = is_dir_command(line_state)
+        fzf_recursive(rl_buffer, line_state, search, dirs_only)
+        rl_buffer:refreshline()
+    elseif not force then
+        -- Invoke the normal complete command.
+        rl.invokecommand('complete')
+    else
+        -- Intercept matches Use match filtering to let
+        fzf_complete_intercept = true
+        rl.invokecommand('complete')
         if fzf_complete_intercept then
             rl_buffer:ding()
         end
         fzf_complete_intercept = false
-        fzf_trigger_search = nil
-        fzf_dirs_only = nil
         rl_buffer:refreshline()
     end
 end
@@ -341,39 +426,21 @@ local function filter_matches(matches, completion_type, filename_completion_desi
     if not fzf_complete_intercept then
         return
     end
+    if #matches <= 1 then
+        return
+    end
 
     -- Start fzf.
-    local r,w
-    if fzf_trigger_search then
-        local dir, word
-        dir = path.getdirectory(fzf_trigger_search)
-        word = path.getname(fzf_trigger_search)
-
-        local command
-        if fzf_dirs_only then
-            command = get_alt_c_command(dir)
-        else
-            command = get_ctrl_t_command(dir)
-        end
-
-        r = io.popen(command..' 2>nul | '..get_fzf('FZF_COMPLETE_OPTS')..' -q "'..word..'"')
-        if not r then
-            return
-        end
-    elseif #matches <= 1 then
+    local r,w = io.popenrw(get_fzf('FZF_COMPLETE_OPTS'))
+    if not r or not w then
         return
-    else
-        r,w = io.popenrw(get_fzf('FZF_COMPLETE_OPTS'))
-        if not r or not w then
-            return
-        end
-
-        -- Write matches to the write pipe.
-        for _,m in ipairs(matches) do
-            w:write(m.match..'\n')
-        end
-        w:close()
     end
+
+    -- Write matches to the write pipe.
+    for _,m in ipairs(matches) do
+        w:write(m.match..'\n')
+    end
+    w:close()
 
     -- Read filtered matches.
     local ret = {}
@@ -400,14 +467,6 @@ local interceptor = clink.generator(0)
 function interceptor:generate(line_state, match_builder)
     if fzf_complete_intercept then
         clink.onfiltermatches(filter_matches)
-        if fzf_trigger_search then
-            -- Add fake matches to prevent short circuiting, and to guarantee
-            -- that filter_matches gets called.
-            match_builder:addmatch(fzf_trigger_search..'x')
-            match_builder:addmatch(fzf_trigger_search..'y')
-            match_builder:addmatch(fzf_trigger_search..'z')
-            return true
-        end
     end
     return false
 end

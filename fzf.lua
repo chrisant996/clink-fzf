@@ -15,6 +15,9 @@
 -- The key bindings when 'fzf.default_bindings' is true are as follows.  They
 -- are presented in .inputrc file format for convenience, if you want to add
 -- them to your .inputrc manually (perhaps with modifications).
+--
+-- luacheck: push
+-- luacheck: no max line length
 --[[
 
 # Default key bindings for fzf with Clink.
@@ -26,6 +29,8 @@
 "\e[27;5;32~": "luafunc:fzf_complete_force" # Ctrl+Space uses fzf to filter match completions (and supports '**' for recursive).
 
 ]]
+-- luacheck: pop
+--
 -- Optional:  You can set the following environment variables to customize the
 -- behavior:
 --
@@ -209,7 +214,7 @@ local function is_dir_command(line_state)
     end
 end
 
-local function fzf_recursive(rl_buffer, line_state, search, quote, dirs_only)
+local function fzf_recursive(rl_buffer, line_state, search, quote, dirs_only) -- luacheck: no unused
     local dir, word
     dir = path.getdirectory(search)
     word = path.getname(search)
@@ -221,8 +226,8 @@ local function fzf_recursive(rl_buffer, line_state, search, quote, dirs_only)
         command = get_ctrl_t_command(dir)
     end
 
-    local first, last, has_quote, delimit = get_word_insert_bounds(line_state)
-    local quote = has_quote or '"'
+    local first, last, has_quote, delimit = get_word_insert_bounds(line_state) -- luacheck: no unused
+    quote = has_quote or '"'
 
     local r = io.popen(command..' 2>nul | '..get_fzf('FZF_COMPLETE_OPTS')..' -q "'..word..'"')
     if not r then
@@ -284,14 +289,17 @@ end
 --------------------------------------------------------------------------------
 -- Functions for use with 'luafunc:' key bindings.
 
+-- luacheck: globals fzf_complete
 function fzf_complete(rl_buffer, line_state)
     fzf_complete_internal(rl_buffer, line_state, false)
 end
 
+-- luacheck: globals fzf_complete_force
 function fzf_complete_force(rl_buffer, line_state)
     fzf_complete_internal(rl_buffer, line_state, true)
 end
 
+-- luacheck: globals fzf_history
 function fzf_history(rl_buffer)
     local clink_command = get_clink()
     if #clink_command == 0 then
@@ -333,6 +341,7 @@ function fzf_history(rl_buffer)
     rl_buffer:refreshline()
 end
 
+-- luacheck: globals fzf_file
 function fzf_file(rl_buffer, line_state)
     local dir = get_word_at_cursor(line_state)
     local command = get_ctrl_t_command(dir)
@@ -358,11 +367,11 @@ function fzf_file(rl_buffer, line_state)
     rl_buffer:refreshline()
 end
 
+-- luacheck: globals fzf_directory
 function fzf_directory(rl_buffer, line_state)
     local dir = get_word_at_cursor(line_state)
     local command = get_alt_c_command(dir)
 
-    local temp_contents = rl_buffer:getbuffer()
     local r = io.popen(command..' 2>nul | '..get_fzf('FZF_ALT_C_OPTS')..' -i')
     if not r then
         rl_buffer:ding()
@@ -386,6 +395,7 @@ function fzf_directory(rl_buffer, line_state)
     rl_buffer:refreshline()
 end
 
+-- luacheck: globals fzf_bindings
 function fzf_bindings(rl_buffer)
     if not rl.getkeybindings then
         rl_buffer:beginoutput()
@@ -409,7 +419,6 @@ function fzf_bindings(rl_buffer)
         w:close()
 
         -- Read filtered matches.
-        local ret = {}
         line = r:read('*line')
         r:close()
     end
@@ -425,7 +434,7 @@ end
 --------------------------------------------------------------------------------
 -- Match generator.
 
-local function filter_matches(matches, completion_type, filename_completion_desired)
+local function filter_matches(matches, completion_type, filename_completion_desired) -- luacheck: no unused
     if not fzf_complete_intercept then
         return
     end
@@ -462,12 +471,11 @@ local function filter_matches(matches, completion_type, filename_completion_desi
 
     -- Yay, successful; clear it to not ding.
     fzf_complete_intercept = false
-    fzf_trigger_search = nil
     return ret
 end
 
 local interceptor = clink.generator(0)
-function interceptor:generate(line_state, match_builder)
+function interceptor:generate(line_state, match_builder) -- luacheck: no unused
     if fzf_complete_intercept then
         clink.onfiltermatches(filter_matches)
     end
@@ -476,7 +484,6 @@ end
 
 clink.onbeginedit(function ()
     fzf_complete_intercept = false
-    fzf_trigger_search = nil
 end)
 
 --------------------------------------------------------------------------------

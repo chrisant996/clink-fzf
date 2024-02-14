@@ -22,8 +22,8 @@ Key | Description
 <kbd>Ctrl</kbd>+<kbd>R</kbd>     | Lists history entries; choose one to insert it.
 <kbd>Alt</kbd>+<kbd>C</kbd>      | Lists subdirectories; choose one to 'cd /d' to it.
 <kbd>Alt</kbd>+<kbd>B</kbd>      | Lists key bindings; choose one to invoke it.
-<kbd>Tab</kbd>                   | Uses fzf to filter match completions.
-<kbd>Ctrl</kbd>+<kbd>Space</kbd> | Uses fzf to filter match completions.
+<kbd>Tab</kbd>                   | Uses fzf to filter match completions, but only when preceded by '**' (recursive).
+<kbd>Ctrl</kbd>+<kbd>Space</kbd> | Uses fzf to filter match completions (and supports '**' for recursive).
 
 > **Note:** For the default key bindings to work, you must be using Clink v1.2.46 or higher.  If you're using an older version of Clink then consider upgrading Clink, or manually add key bindings in your .inputrc file as described below.
 

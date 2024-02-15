@@ -50,12 +50,12 @@ The default key bindings for FZF are listed here in .inputrc file format for con
 
 ```inputrc
 # Default key bindings for fzf with Clink.
-"\C-t":        "luafunc:fzf_file"       # Ctrl+T lists files recursively; choose one or multiple to insert them.
-"\C-r":        "luafunc:fzf_history"    # Ctrl+R lists history entries; choose one to insert it.
-"\M-c":        "luafunc:fzf_directory"  # Alt+C lists subdirectories; choose one to 'cd /d' to it.
-"\M-b":        "luafunc:fzf_bindings"   # Alt+B lists key bindings; choose one to invoke it.
-"\t":          "luafunc:fzf_complete"   # Tab uses fzf to filter match completions.
-"\e[27;5;32~": "luafunc:fzf_complete"   # Ctrl+Space uses fzf to filter match completions.
+"\C-t":        "luafunc:fzf_file"           # Ctrl+T lists files recursively; choose one or multiple to insert them.
+"\C-r":        "luafunc:fzf_history"        # Ctrl+R lists history entries; choose one to insert it.
+"\M-c":        "luafunc:fzf_directory"      # Alt+C lists subdirectories; choose one to 'cd /d' to it.
+"\M-b":        "luafunc:fzf_bindings"       # Alt+B lists key bindings; choose one to invoke it.
+"\t":          "luafunc:fzf_complete"       # Tab uses fzf to filter match completions, but only when preceded by '**' (recursive).
+"\e[27;5;32~": "luafunc:fzf_complete_force" # Ctrl+Space uses fzf to filter match completions (and supports '**' for recursive).
 ```
 
 There is also a `"luafunc:fzf_selectcomplete"` function which invokes `clink-select-complete` instead of `complete`.  This enables the `**` recursive completion behavior with the interactive completion command.

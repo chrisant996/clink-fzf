@@ -19,7 +19,7 @@ Here are the default key bindings in Clink:
 Key | Description
 -|-
 <kbd>Ctrl</kbd>+<kbd>T</kbd>     | Lists files recursively; choose one or multiple to insert them.
-<kbd>Ctrl</kbd>+<kbd>R</kbd>     | Lists history entries; choose one to insert it.
+<kbd>Ctrl</kbd>+<kbd>R</kbd>     | Lists history entries; choose one to insert it (press DEL in the list to delete the selected history entry).
 <kbd>Alt</kbd>+<kbd>C</kbd>      | Lists subdirectories; choose one to 'cd /d' to it.
 <kbd>Alt</kbd>+<kbd>B</kbd>      | Lists key bindings; choose one to invoke it.
 <kbd>Tab</kbd>                   | Uses fzf to filter match completions, but only when preceded by '**' (recursive).

@@ -80,3 +80,19 @@ Env Var Name | Description
 -|-
 `FZF_CTRL_T_COMMAND` | Command to run for collecting files for <kbd>Ctrl</kbd>+<kbd>T</kbd> (the `"luafunc:fzf_file"` function).
 `FZF_ALT_C_COMMAND`  | Command to run for collecting directories for <kbd>Alt</kbd>+<kbd>C</kbd> (the `"luafunc:fzf_directory"` function).
+
+# Icons in FZF
+
+You can optionally have file icons show up in FZF completion lists in Clink.
+
+Requirements:
+- Install and use a [Nerd Font](https://nerdfonts.com).
+- [Clink](https://github.com/chrisant996/clink) v1.6.5 or newer.
+- [DirX](https://github.com/chrisant996/dirx) v0.8 or newer.
+- [FZF](https://nicedoc.io/junegunn/fzf).
+
+Configure the following environment variables:
+- `set FZF_CTRL_T_COMMAND=dirx.exe /b /s /a:-s --icons=always --utf8 $dir`
+- `set FZF_ALT_C_COMMAND=dirx.exe /b /s /a:d-s --icons=always --utf8 $dir`
+- `set FZF_ICON_WIDTH=2`
+

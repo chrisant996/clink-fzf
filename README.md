@@ -92,8 +92,8 @@ Requirements:
 - [FZF](https://nicedoc.io/junegunn/fzf).
 
 Configure the following environment variables:
-- `set FZF_CTRL_T_COMMAND=dirx.exe /b /s /X:d /a:-s-h --icons=always --utf8 $dir`
-- `set FZF_ALT_C_COMMAND=dirx.exe /b /s /X:d /a:d-s-h --icons=always --utf8 $dir`
+- `set FZF_CTRL_T_COMMAND=dirx.exe /b /s /X:d /a:-s-h --bare-relative --icons=always --utf8 $dir`
+- `set FZF_ALT_C_COMMAND=dirx.exe /b /s /X:d /a:d-s-h --bare-relative --icons=always --utf8 $dir`
 - `set FZF_ICON_WIDTH=2`
 
 If you want it to recurse into hidden directories, then remove the `/X:d` part from the commands in the environment variables.

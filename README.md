@@ -88,11 +88,15 @@ You can optionally have file icons show up in FZF completion lists in Clink.
 Requirements:
 - Install and use a [Nerd Font](https://nerdfonts.com).
 - [Clink](https://github.com/chrisant996/clink) v1.6.5 or newer.
-- [DirX](https://github.com/chrisant996/dirx) v0.8 or newer.
+- [DirX](https://github.com/chrisant996/dirx) v0.9 or newer.
 - [FZF](https://nicedoc.io/junegunn/fzf).
 
 Configure the following environment variables:
-- `set FZF_CTRL_T_COMMAND=dirx.exe /b /s /a:-s --icons=always --utf8 $dir`
-- `set FZF_ALT_C_COMMAND=dirx.exe /b /s /a:d-s --icons=always --utf8 $dir`
+- `set FZF_CTRL_T_COMMAND=dirx.exe /b /s /X:d /a:-s-h --icons=always --utf8 $dir`
+- `set FZF_ALT_C_COMMAND=dirx.exe /b /s /X:d /a:d-s-h --icons=always --utf8 $dir`
 - `set FZF_ICON_WIDTH=2`
+
+If you want it to recurse into hidden directories, then remove the `/X:d` part from the commands in the environment variables.
+
+If you want it to list hidden files and directories, then remove the `-h` part at the end of the `/a:` flags in the environment variables.
 

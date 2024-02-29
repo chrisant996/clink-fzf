@@ -100,3 +100,21 @@ If you want it to recurse into hidden directories, then remove the `/X:d` part f
 
 If you want it to list hidden files and directories, then remove the `-h` part at the end of the `/a:` flags in the environment variables.
 
+# Previewing file and folder contents
+
+You can specify a preview command for FZF. 
+
+The examples assume you have also enabled icons. If you don't have icons enabled just replace `{2..}` with `{}`.
+
+The examples also let you toggle between different preview window sizes with <kbd>Ctrl</kbd>+<kbd>/</kbd>.
+
+## Previewing file contents
+The command will show you the contents of files for <kbd>Ctrl</kbd>+<kbd>T</kbd> hotkey; it assumes you have [bat](https://github.com/sharkdp/bat) installed and available in `%PATH%`environment variable.
+
+`set FZF_CTRL_T_OPTS=--preview-window "right:40%,border-left" --bind "ctrl-/:change-preview-window(right:70%|hidden|)" --preview "bat --force-colorization --style=numbers,changes --line-range=:500 {2..}"`
+
+
+## Previewing folder contents
+This command will show you the contents of folders for <kbd>Alt</kbd>+<kbd>C</kbd> hotkey.
+
+`set FZF_ALT_C_OPTS=--preview-window "right:40%,border-left" --bind "ctrl-/:change-preview-window(right:70%|hidden|)" --preview "dirx -b -s --bare-relative --utf8 --level=3 --icons=always {2..}"`

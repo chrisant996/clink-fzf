@@ -115,6 +115,6 @@ The command will show you the contents of files for <kbd>Ctrl</kbd>+<kbd>T</kbd>
 
 
 ## Previewing folder contents
-This command will show you the contents of folders for <kbd>Alt</kbd>+<kbd>C</kbd> hotkey.
+This command will show you the contents of folders for <kbd>Alt</kbd>+<kbd>C</kbd> hotkey; it assumes you have [dirx](https://github.com/chrisant996/dirx) installed and available in `%PATH%`environment variable.
 
-`set FZF_ALT_C_OPTS=--preview-window "right:40%,border-left" --bind "ctrl-/:change-preview-window(right:70%|hidden|)" --preview "dirx -b -s --bare-relative --utf8 --level=3 --icons=always {2..}"`
+`set FZF_ALT_C_OPTS=--preview-window "right:40%,border-left" --bind "ctrl-/:change-preview-window(right:70%|hidden|)" --preview "dirx -b -s --bare-relative --utf8 --level=3 --tree --icons=always {2..}"`

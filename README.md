@@ -62,7 +62,12 @@ The default key bindings for FZF are listed here in .inputrc file format for con
 "\e[27;5;32~": "luafunc:fzf_complete_force" # Ctrl+Space uses fzf to filter match completions (and supports '**' for recursive).
 ```
 
-There is also a `"luafunc:fzf_selectcomplete"` function which invokes `clink-select-complete` instead of `complete`.  This enables the `**` recursive completion behavior with the interactive completion command.
+The following commands are also available for binding to keys:
+
+Command | Description
+-|-
+`"luafunc:fzf_menucomplete"` | Use fzf for completion after `**` otherwise use the `menu-complete` command.
+`"luafunc:fzf_oldmenucomplete"` | Use fzf for completion after `**` otherwise use the `old-menu-complete` command.
 
 ## FZF options
 

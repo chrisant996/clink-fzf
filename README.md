@@ -10,11 +10,15 @@ This script integrates the [FZF](https://nicedoc.io/junegunn/fzf) "fuzzy finder"
 
 2.  Either put `fzf.exe` in a directory listed in the system PATH environment variable, or run `clink set fzf.exe_location <put_dir_name_here>` to tell Clink where to find the FZF program.
 
+3.  Set up key bindings.
+    - To use the default key bindings, run `clink set fzf.default_bindings true`.
+    - To use custom key bindings, add them to your .inputrc file (see [Key Bindings](#key-bindings)).
+
 # How to use
 
 For detailed information on using FZF, please refer to the [FZF documentation](https://nicedoc.io/junegunn/fzf).
 
-Here are the default key bindings in Clink:
+Here are the default key bindings in Clink, if you've enabled the `fzf.default_bindings` setting:
 
 Key | Description
 -|-
@@ -109,12 +113,14 @@ The examples assume you have also enabled icons. If you don't have icons enabled
 The examples also let you toggle between different preview window sizes with <kbd>Ctrl</kbd>+<kbd>/</kbd>.
 
 ## Previewing file contents
-The command will show you the contents of files for <kbd>Ctrl</kbd>+<kbd>T</kbd> hotkey; it assumes you have [bat](https://github.com/sharkdp/bat) installed and available in `%PATH%`environment variable.
+
+The command will show the contents of files with the <kbd>Ctrl</kbd>+<kbd>T</kbd> hotkey; it assumes you have [bat](https://github.com/sharkdp/bat) installed and available in the `%PATH%` environment variable.
 
 `set FZF_CTRL_T_OPTS=--preview-window "right:40%,border-left" --bind "ctrl-/:change-preview-window(right:70%|hidden|)" --preview "bat --force-colorization --style=numbers,changes --line-range=:500 {2..}"`
 
-
 ## Previewing folder contents
-This command will show you the contents of folders for <kbd>Alt</kbd>+<kbd>C</kbd> hotkey; it assumes you have [dirx](https://github.com/chrisant996/dirx) installed and available in `%PATH%`environment variable.
+
+This command will show the contents of folders with the <kbd>Alt</kbd>+<kbd>C</kbd> hotkey; it assumes you have [dirx](https://github.com/chrisant996/dirx) installed and available in the `%PATH%` environment variable.
 
 `set FZF_ALT_C_OPTS=--preview-window "right:40%,border-left" --bind "ctrl-/:change-preview-window(right:70%|hidden|)" --preview "dirx -b -s --bare-relative --utf8 --level=3 --tree --icons=always {2..}"`
+

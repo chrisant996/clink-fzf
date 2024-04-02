@@ -8,7 +8,7 @@ This script integrates the [FZF](https://nicedoc.io/junegunn/fzf) "fuzzy finder"
 
 1.  Copy the `fzf.lua` file into your Clink scripts directory.
 
-2.  Either put `fzf.exe` in a directory listed in the system PATH environment variable, or run `clink set fzf.exe_location <put_dir_name_here>` to tell Clink where to find the FZF program.
+2.  Either put `fzf.exe` in a directory listed in the system PATH environment variable, or run `clink set fzf.exe_location <put_full_exe_name_here>` to tell Clink where to find the FZF program.
 
 3.  Set up key bindings.
     - To use the default key bindings, run `clink set fzf.default_bindings true`.

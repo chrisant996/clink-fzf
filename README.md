@@ -6,7 +6,7 @@ This script integrates the [FZF](https://nicedoc.io/junegunn/fzf) "fuzzy finder"
 
 # How to install
 
-1.  Copy the `fzf.lua` file into your Clink scripts directory.
+1.  Copy the `fzf.lua` file into your Clink scripts directory (you can run `clink info` to find it, or see [Location of Lua Scripts](https://chrisant996.github.io/clink/clink.html#lua-scripts-location) in the Clink docs for more info).
 
 2.  Either put `fzf.exe` in a directory listed in the system PATH environment variable, or run `clink set fzf.exe_location <put_full_exe_name_here>` to tell Clink where to find the FZF program.
 

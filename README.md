@@ -2,7 +2,8 @@
 
 This script integrates the [FZF](https://nicedoc.io/junegunn/fzf) "fuzzy finder" with the [Clink](https://chrisant996.github.io/clink) command line editing enhancements for CMD.exe on Windows.
 
-> Note: This is included by [clink-gizmos](https://github.com/chrisant996/clink-gizmos), so use either clink-gizmos or clink-fzf, but not both (using both results in duplication and warnings).  Clink-gizmos contains a collection of scripts, and clink-fzf contains a single script.
+> [!TIP]
+> Consider using [clink-gizmos](https://github.com/chrisant996/clink-gizmos) instead.  It includes this script as well as many other useful scripts.  Use either clink-gizmos or clink-fzf, but not both -- using both results in duplication and warnings.
 
 # How to install
 

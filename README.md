@@ -1,6 +1,6 @@
 # FZF integration for Clink
 
-This script integrates the [FZF](https://nicedoc.io/junegunn/fzf) "fuzzy finder" with the [Clink](https://chrisant996.github.io/clink) command line editing enhancements for CMD.exe on Windows.
+This script integrates the [FZF](https://github.com/junegunn/fzf) "fuzzy finder" with the [Clink](https://chrisant996.github.io/clink) command line editing enhancements for CMD.exe on Windows.
 
 > [!TIP]
 > Consider using [clink-gizmos](https://github.com/chrisant996/clink-gizmos) instead.  It includes this script as well as many other useful scripts.  Use either clink-gizmos or clink-fzf, but not both -- using both results in duplication and warnings.
@@ -17,7 +17,7 @@ This script integrates the [FZF](https://nicedoc.io/junegunn/fzf) "fuzzy finder"
 
 # How to use
 
-For detailed information on using FZF, please refer to the [FZF documentation](https://nicedoc.io/junegunn/fzf).
+For detailed information on using FZF, please refer to the [FZF documentation](https://github.com/junegunn/fzf).
 
 Here are the default key bindings in Clink, if you've enabled the `fzf.default_bindings` setting:
 
@@ -99,7 +99,7 @@ Requirements:
 - Install and use a [Nerd Font](https://nerdfonts.com).
 - [Clink](https://github.com/chrisant996/clink) v1.6.5 or newer.
 - [DirX](https://github.com/chrisant996/dirx) v0.9 or newer.
-- [FZF](https://nicedoc.io/junegunn/fzf).
+- [FZF](https://github.com/junegunn/fzf).
 
 Configure the following environment variables:
 - `set FZF_CTRL_T_COMMAND=dirx.exe /b /s /X:d /a:-s-h --bare-relative --icons=always --utf8 $dir`

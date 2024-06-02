@@ -53,13 +53,16 @@
 -- Optional:  You can set the following environment variables to customize the
 -- behavior:
 --
+--          FZF_DEFAULT_OPTS    = fzf options applied to all fzf invocations.
+--
 --          FZF_CTRL_T_OPTS     = fzf options for fzf_file() function.
 --          FZF_CTRL_R_OPTS     = fzf options for fzf_history() function.
 --          FZF_ALT_C_OPTS      = fzf options for fzf_directory() function.
 --          FZF_BINDINGS_OPTS   = fzf options for fzf_bindings() function.
---          FZF_COMPLETE_OPTS   = fzf options for fzf_complete() and
---                                fzf_complete_force() and fzf_selectcomplete()
---                                functions.
+--          FZF_COMPLETION_OPTS = fzf options for the completion functions
+--                                (fzf_complete, fzf_menucomplete,
+--                                fzf_selectcomplete, and etc).
+--          FZF_COMPLETE_OPTS   = an older name for FZF_COMPLETION_OPTS.
 --
 --          FZF_CTRL_T_COMMAND  = command to run for collecting files for
 --                                fzf_file() function.
@@ -155,6 +158,18 @@ local diag = false
 local fzf_complete_intercept = false
 local describemacro_list = {}
 local interceptor
+
+local function join_str(a, b)
+    a = a or ''
+    b = b or ''
+    if a == '' then
+        return b
+    elseif b == '' then
+        return a
+    else
+        return a..' '..b
+    end
+end
 
 local function describe_commands()
     if describemacro_list then
@@ -262,7 +277,7 @@ local function make_query_string(rl_buffer)
     return s
 end
 
-local function get_fzf(env, addl_options)
+local function get_fzf(mode, addl_options)
     local command = settings.get('fzf.exe_location')
     if not command or command == '' then
         command = 'fzf.exe'
@@ -278,20 +293,38 @@ local function get_fzf(env, addl_options)
         command = path.getbasename(command)..".exe"
     end
 
+    command = '"'..command..'"'
+
     local height = settings.get('fzf.height')
     if height and height ~= '' then
-        command = '"'..command..'" --height '..height
+        command = join_str(command, '--height '..height)
     end
 
-    if addl_options then
-        command = command..' '..addl_options
+    command = join_str(command, addl_options)
+
+    local options = os.getenv('FZF_DEFAULT_OPTS')
+    if mode == 'complete' then
+        options = join_str('--reverse', options)
+        options = join_str(options, os.getenv('FZF_COMPLETION_OPTS') or os.getenv('FZF_COMPLETE_OPTS'))
+    elseif mode == 'dirs' then
+        options = join_str('--reverse --scheme=path', options)
+        options = join_str(options, os.getenv('FZF_ALT_C_OPTS'))
+    elseif mode == 'path' then
+        options = join_str('--reverse --scheme=path', options)
+        options = join_str(options, os.getenv('FZF_CTRL_T_OPTS'))
+    elseif mode == 'history' then
+        options = join_str('--scheme=history --bind=ctrl-r:toggle-sort', options)
+        options = join_str(options, os.getenv('FZF_CTRL_R_OPTS'))
+        options = join_str(options, '+m')
+    elseif mode == 'bindings' then
+        options = join_str(options, os.getenv('FZF_BINDINGS_OPTS'))
+        options = join_str(options, '-i')
+    else
+        error('Unrecognized mode ('..tostring(mode)..').')
     end
 
-    if env then
-        local options = os.getenv(env)
-        if options then
-            command = command..' '..options
-        end
+    if options then
+        command = join_str(command, options)
     end
 
     return command
@@ -428,16 +461,18 @@ local function fzf_recursive(rl_buffer, line_state, search, dirs_only) -- luache
     dir = path.getdirectory(search)
     word = path.getname(search)
 
-    local command
+    local command, mode
     if dirs_only then
         command = get_alt_c_command(dir)
+        mode = 'dirs'
     else
         command = get_ctrl_t_command(dir)
+        mode = 'complete'
     end
 
     local first, last, has_quote, delimit = get_word_insert_bounds(line_state) -- luacheck: no unused
 
-    local r = io.popen('2>nul '..command..' | '..get_fzf('FZF_COMPLETE_OPTS')..' -q "'..word..'"')
+    local r = io.popen('2>nul '..command..' | '..get_fzf(mode)..' -q "'..word..'"')
     if not r then
         rl_buffer:ding()
         return
@@ -581,7 +616,7 @@ function fzf_history(rl_buffer)
     -- characters from the input line.  This still does a good job of matching,
     -- because fzf uses fuzzy matching.
     local qs = make_query_string(rl_buffer)
-    local r = io.popen('2>nul '..history..' | '..get_fzf('FZF_CTRL_R_OPTS', del_binding)..' -i --tac '..qs)
+    local r = io.popen('2>nul '..history..' | '..get_fzf('history', del_binding)..' -i --tac '..qs)
     if not r then
         rl_buffer:ding()
         return
@@ -611,7 +646,7 @@ function fzf_file(rl_buffer, line_state)
 
     local first, last, has_quote, delimit = get_word_insert_bounds(line_state) -- luacheck: no unused
 
-    local r = io.popen(command..' 2>nul | '..get_fzf('FZF_CTRL_T_OPTS')..' -i -m')
+    local r = io.popen(command..' 2>nul | '..get_fzf('path')..' -i -m')
     if not r then
         rl_buffer:ding()
         return
@@ -636,7 +671,7 @@ function fzf_directory(rl_buffer, line_state)
     local dir = get_word_at_cursor(line_state)
     local command = get_alt_c_command(dir)
 
-    local r = io.popen(command..' 2>nul | '..get_fzf('FZF_ALT_C_OPTS')..' -i')
+    local r = io.popen(command..' 2>nul | '..get_fzf('dirs')..' -i')
     if not r then
         rl_buffer:ding()
         return
@@ -681,8 +716,9 @@ function fzf_bindings(rl_buffer)
         return
     end
 
+    -- Start fzf.  Extra quotes are needed to work around CMD quoting issue.
     local line
-    local r,w = io.popenrw(get_fzf('FZF_BINDINGS_OPTS')..' -i')
+    local r,w = io.popenrw('"'..get_fzf('bindings')..'"')
     if r and w then
         -- Write key bindings to the write pipe.
         for _,kb in ipairs(bindings) do
@@ -714,8 +750,8 @@ local function filter_matches(matches, completion_type, filename_completion_desi
         return
     end
 
-    -- Start fzf.
-    local r,w = io.popenrw(get_fzf('FZF_COMPLETE_OPTS'))
+    -- Start fzf.  Extra quotes are needed to work around CMD quoting issue.
+    local r,w = io.popenrw('"'..get_fzf('complete')..'"')
     if not r or not w then
         return
     end

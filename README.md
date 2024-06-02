@@ -3,7 +3,7 @@
 This script integrates the [FZF](https://github.com/junegunn/fzf) "fuzzy finder" with the [Clink](https://chrisant996.github.io/clink) command line editing enhancements for CMD.exe on Windows.
 
 > [!TIP]
-> Consider using [clink-gizmos](https://github.com/chrisant996/clink-gizmos) instead.  It includes this script as well as many other useful scripts.  Use either clink-gizmos or clink-fzf, but not both -- using both results in duplication and warnings.
+> Consider using [clink-gizmos](https://github.com/chrisant996/clink-gizmos) instead, which includes this script as well as many other useful scripts.  If you use clink-gizmos, then you don't need clink-fzf -- clink-gizmos contains a collection of scripts, and clink-fzf contains a single script.
 
 # How to install
 
@@ -24,7 +24,7 @@ Here are the default key bindings in Clink, if you've enabled the `fzf.default_b
 Key | Description
 -|-
 <kbd>Ctrl</kbd>+<kbd>T</kbd>     | Lists files recursively; choose one or multiple to insert them.
-<kbd>Ctrl</kbd>+<kbd>R</kbd>     | Lists history entries; choose one to insert it (press DEL in the list to delete the selected history entry).
+<kbd>Ctrl</kbd>+<kbd>R</kbd>     | Lists history entries; choose one to insert it<br>Press <kbd>Del</kbd> in the list to delete the selected history entry.<br>Press <kbd>Ctrl</kbd>+<kbd>R</kbd> in the history list to toggle fzf's sorting mode.
 <kbd>Alt</kbd>+<kbd>C</kbd>      | Lists subdirectories; choose one to 'cd /d' to it.
 <kbd>Alt</kbd>+<kbd>B</kbd>      | Lists key bindings; choose one to invoke it.
 <kbd>Tab</kbd>                   | Uses fzf to filter match completions, but only when preceded by '**' (recursive).
@@ -76,11 +76,16 @@ You can specify FZF options for each of the different commands:
 
 Env Var Name | Description
 -|-
+`FZF_DEFAULT_OPTS`  | Options that are applied to all fzf invocations.
 `FZF_CTRL_T_OPTS`   | Options for <kbd>Ctrl</kbd>+<kbd>T</kbd> (the `"luafunc:fzf_file"` function).
 `FZF_CTRL_R_OPTS`   | Options for <kbd>Ctrl</kbd>+<kbd>R</kbd> (the `"luafunc:fzf_history"` function).
 `FZF_ALT_C_OPTS`    | Options for <kbd>Alt</kbd>+<kbd>C</kbd> (the `"luafunc:fzf_directory"` function).
 `FZF_BINDINGS_OPTS` | Options for <kbd>Alt</kbd>+<kbd>B</kbd> (the `"luafunc:fzf_bindings"` function).
-`FZF_COMPLETE_OPTS` | Options for <kbd>Ctrl</kbd>+<kbd>Space</kbd> (the `"luafunc:fzf_complete"` function).
+`FZF_COMPLETION_OPTS` | Options for the completion functions (`"luafunc:fzf_complete"`, `"luafunc:fzf_menucomplete"`, `"luafunc:fzf_oldmenucomplete"`, `"luafunc:fzf_selectcomplete"`, etc).
+
+> [!TIP]
+> The options in `FZF_DEFAULT_OPTS` are added to all fzf commands.
+> The options in the other `..._OPTS` environment variables are added only to their corresponding fzf commands.
 
 ## File and directory list commands
 

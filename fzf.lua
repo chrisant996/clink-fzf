@@ -2,7 +2,7 @@
 -- FZF integration for Clink.
 --
 -- Clink is available at https://chrisant996.github.io/clink
--- FZF is available from https://nicedoc.io/junegunn/fzf
+-- FZF is available from https://github.com/junegunn/fzf
 --
 -- Either put fzf.exe in a directory listed in the system PATH environment
 -- variable, or run 'clink set fzf.exe_location <directoryname>' to tell Clink
@@ -25,7 +25,7 @@
 "\C-r":        "luafunc:fzf_history"        # Ctrl+R lists history entries; choose one to insert it.
 "\M-c":        "luafunc:fzf_directory"      # Alt+C lists subdirectories; choose one to 'cd /d' to it.
 "\M-b":        "luafunc:fzf_bindings"       # Alt+B lists key bindings; choose one to invoke it.
-"\t":          "luafunc:fzf_complete"       # Tab uses fzf to filter match completions, but only when preceded by '**' (recursive).
+"\t":          "luafunc:fzf_tab"            # Tab uses fzf to filter match completions, but only when preceded by '**' (recursive).
 "\e[27;5;32~": "luafunc:fzf_complete_force" # Ctrl+Space uses fzf to filter match completions (and supports '**' for recursive).
 
 ]]
@@ -86,7 +86,6 @@ settings.add('fzf.height', '40%', 'Height to use for the --height flag')
 settings.add('fzf.exe_location', '', 'Location of fzf.exe if not on the PATH')
 
 if rl.setbinding then
-
     settings.add(
         'fzf.default_bindings',
         false,
@@ -95,16 +94,6 @@ if rl.setbinding then
         'fzf are initially not enabled.  Set this to true to enable the default\n'..
         'key bindings for fzf, or add bindings manually to your .inputrc file.\n\n'..
         'Changing this takes effect for the next Clink session.')
-
-    if settings.get('fzf.default_bindings') then
-        rl.setbinding([["\C-t"]], [["luafunc:fzf_file"]])
-        rl.setbinding([["\C-r"]], [["luafunc:fzf_history"]])
-        rl.setbinding([["\M-c"]], [["luafunc:fzf_directory"]])
-        rl.setbinding([["\M-b"]], [["luafunc:fzf_bindings"]])
-        rl.setbinding([["\t"]], [["luafunc:fzf_complete"]])
-        rl.setbinding([["\e[27;5;32~"]], [["luafunc:fzf_complete_force"]])
-    end
-
 end
 
 --------------------------------------------------------------------------------
@@ -412,6 +401,9 @@ end
 -- luacheck: globals fzf_complete_internal
 function fzf_complete_internal(rl_buffer, line_state, force, completion_command)
     local search = is_trigger(line_state)
+    if completion_command == '' then
+        completion_command = nil
+    end
     if search then
         -- Gather files and/or dirs recursively, and show them in fzf.
         local dirs_only = is_dir_command(line_state)
@@ -434,6 +426,22 @@ end
 
 --------------------------------------------------------------------------------
 -- Functions for use with 'luafunc:' key bindings.
+
+local tab_binding = "complete"
+
+local function apply_default_bindings()
+    if settings.get('fzf.default_bindings') then
+        tab_binding = rl.getbinding([["\t"]])
+        rl.setbinding([["\C-t"]], [["luafunc:fzf_file"]])
+        rl.setbinding([["\C-r"]], [["luafunc:fzf_history"]])
+        rl.setbinding([["\M-c"]], [["luafunc:fzf_directory"]])
+        rl.setbinding([["\M-b"]], [["luafunc:fzf_bindings"]])
+        rl.setbinding([["\t"]], [["luafunc:fzf_tab"]])
+        rl.setbinding([["\e[27;5;32~"]], [["luafunc:fzf_complete_force"]])
+    end
+end
+
+apply_default_bindings()
 
 -- luacheck: globals fzf_complete
 add_help_desc("luafunc:fzf_complete",
@@ -468,6 +476,13 @@ add_help_desc("luafunc:fzf_complete_force",
               "Use fzf for completion")
 function fzf_complete_force(rl_buffer, line_state)
     fzf_complete_internal(rl_buffer, line_state, true)
+end
+
+-- luacheck: globals fzf_tab
+add_help_desc("luafunc:fzf_tab",
+              "Use fzf for completion if ** is immediately before the cursor position")
+function fzf_tab(rl_buffer, line_state)
+    fzf_complete_internal(rl_buffer, line_state, false, tab_binding)
 end
 
 -- luacheck: globals fzf_history

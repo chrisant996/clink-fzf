@@ -137,7 +137,7 @@ This command will show the contents of folders with the <kbd>Alt</kbd>+<kbd>C</k
 
 ## Previewing image files
 
-The sample script [fzf-preview.cmd](fzf-preview.cmd) can be used to preview image files.  It assumes you have [chafa](https://hpjansson.org/chafa) installed and available in the `%PATH%` environment variable.
+The sample script [fzf-preview.cmd](fzf-preview.cmd) can be used to preview image files.  It assumes you have both [chafa](https://hpjansson.org/chafa) and [bat](https://github.com/sharkdp/bat) installed and available in the `%PATH%` environment variable.
 
 To use the sample script for previewing image files, replace the `--preview "..."` part of the examples above with either:
 - `--preview "fzf-preview.cmd {2..}"` if you're using icons, or

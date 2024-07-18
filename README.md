@@ -135,3 +135,15 @@ This command will show the contents of folders with the <kbd>Alt</kbd>+<kbd>C</k
 
 `set FZF_ALT_C_OPTS=--preview-window "right:40%,border-left" --bind "ctrl-/:change-preview-window(right:70%|hidden|)" --preview "dirx -b -s --bare-relative --utf8 --level=3 --tree --icons=always {2..}"`
 
+## Previewing image files
+
+The sample script [fzf-preview.cmd](fzf-preview.cmd) can be used to preview image files.  It assumes you have [chafa](https://hpjansson.org/chafa) installed and available in the `%PATH%` environment variable.
+
+To use the sample script for previewing image files, replace the `--preview "..."` part of the examples above with either:
+- `--preview "fzf-preview.cmd {2..}"` if you're using icons, or
+- `--preview "fzf-preview.cmd {}"` if you're not using icons.
+
+If you want to customize the flags for `chafa` and `bat`:
+1. Make a copy of the script.
+2. Customize the _copy_ instead of the original.  That way, your changes won't get overwritten when you update clink-fzf (or clink-gizmos).
+3. Replace `fzf-preview.cmd` in the examples above with the filename of your customized copy.

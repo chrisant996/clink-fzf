@@ -51,6 +51,13 @@
 --                              This is false by default, to avoid interference
 --                              with your existing key bindings.
 --
+--      fzf.show_descriptions   Show descriptions when filtering args. fzf will
+--                              also search in the arg description text.
+--
+--      fzf.color_descriptions  Use color.description for arg descriptions.
+--                              fzf should be run with --ansi to preserve color
+--                              codes.
+--
 --
 -- Optional:  You can set the following environment variables to customize the
 -- behavior:
@@ -139,6 +146,8 @@ maybe_add('fzf.height', '40%', 'Height to use for the --height flag')
 maybe_add('fzf.exe_location', '', 'Location of fzf.exe if not on the PATH',
           "This isn't just a directory name, it's the full path name of the\n"..
           "exe file.  For example, c:\\tools\\fzf.exe or etc.")
+maybe_add('fzf.show_descriptions', true, 'Show descriptions when filtering options')
+maybe_add('fzf.color_descriptions', false, 'Use configured description color')
 
 if rl.setbinding then
     maybe_add(
@@ -767,6 +776,9 @@ local function filter_matches(matches, completion_type, filename_completion_desi
         return
     end
 
+    local show_descriptions = settings.get('fzf.show_descriptions')
+    local color_descriptions = settings.get('fzf.color_descriptions')
+
     -- Write matches to the write pipe.
     local which = {}
     for _,m in ipairs(matches) do
@@ -775,8 +787,21 @@ local function filter_matches(matches, completion_type, filename_completion_desi
             table.insert(which, text)
             w:write(text..'\n')
         else
-            table.insert(which, m.match)
-            w:write(m.match..'\n')
+            if show_descriptions and m.description and m.description ~= '' then
+                local start = m.match .. string.rep(' ', 30 - #m.match)
+                local description
+                if color_descriptions then
+                    description = '\27[' .. settings.get('color.description') .. 'm' .. m.description .. '\27[0m'
+                    table.insert(which, start .. m.description:gsub('\x1b%[[%d;]*m', ''))
+                else
+                    description = m.description:gsub('\x1b%[[%d;]*m', '') -- remove ansi colors
+                    table.insert(which, start .. description)
+                end
+                w:write(start .. description .. '\n')
+            else
+                table.insert(which, m.match)
+                w:write(m.match..'\n')
+            end
         end
     end
     w:close()

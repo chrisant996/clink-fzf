@@ -119,7 +119,7 @@ If you want it to list hidden files and directories, then remove the `-h` part a
 
 You can specify a preview command for FZF. 
 
-The examples assume you have also enabled icons. If you don't have icons enabled just replace `{2..}` with `{}`.
+If you have [enabled icons](#Icons-in-FZF), then replace each `{}` with `{2..}`.
 
 The examples also let you toggle between different preview window sizes with <kbd>Ctrl</kbd>+<kbd>/</kbd>.
 
@@ -127,21 +127,21 @@ The examples also let you toggle between different preview window sizes with <kb
 
 The command will show the contents of files with the <kbd>Ctrl</kbd>+<kbd>T</kbd> hotkey; it assumes you have [bat](https://github.com/sharkdp/bat) installed and available in the `%PATH%` environment variable.
 
-`set FZF_CTRL_T_OPTS=--preview-window "right:40%,border-left" --bind "ctrl-/:change-preview-window(right:70%|hidden|)" --preview "bat --force-colorization --style=numbers,changes --line-range=:500 -- {2..}"`
+`set FZF_CTRL_T_OPTS=--preview-window "right:40%,border-left" --bind "ctrl-/:change-preview-window(right:70%|hidden|)" --preview "bat --force-colorization --style=numbers,changes --line-range=:500 -- {}"`
 
 ## Previewing folder contents
 
 This command will show the contents of folders with the <kbd>Alt</kbd>+<kbd>C</kbd> hotkey; it assumes you have [dirx](https://github.com/chrisant996/dirx) installed and available in the `%PATH%` environment variable.
 
-`set FZF_ALT_C_OPTS=--preview-window "right:40%,border-left" --bind "ctrl-/:change-preview-window(right:70%|hidden|)" --preview "dirx -b -s --bare-relative --utf8 --level=3 --tree --icons=always -- {2..}"`
+`set FZF_ALT_C_OPTS=--preview-window "right:40%,border-left" --bind "ctrl-/:change-preview-window(right:70%|hidden|)" --preview "dirx -b -s --bare-relative --utf8 --level=3 --tree --icons=always -- {}"`
 
 ## Previewing image files
 
 The sample script [fzf-preview.cmd](fzf-preview.cmd) can be used to preview image files.  It assumes you have both [chafa](https://hpjansson.org/chafa) and [bat](https://github.com/sharkdp/bat) installed and available in the `%PATH%` environment variable.
 
 To use the sample script for previewing image files, replace the `--preview "..."` part of the examples above with either:
-- `--preview "fzf-preview.cmd {2..}"` if you're using icons, or
-- `--preview "fzf-preview.cmd {}"` if you're not using icons.
+- `--preview "fzf-preview.cmd {}"` if you're not using icons, or
+- `--preview "fzf-preview.cmd {2..}"` if you're using icons.
 
 If you want to customize the flags for `chafa` and `bat`:
 1. Make a copy of the script.

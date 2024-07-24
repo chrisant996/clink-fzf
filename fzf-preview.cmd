@@ -18,8 +18,16 @@ rem    For example if {2..} is used with only one field, such as when
 rem    configured to use icons but a match has no icon.
 if "%~1" == "" goto :end
 
+rem -- Strip off description, and make sure the filename is quoted.  This works
+rem    because fzf.lua inserts at least 4 spaces before each description.
+set __ARG=%~1
+set __DELIMITED=%__ARG:    =	%
+rem                         ^embedded TAB character
+for /f "tokens=1,2 delims=	" %%a in ("%__DELIMITED%") do set __ARG="%%a"
+rem                       ^embedded TAB character
+
 rem -- Make sure the filename is quoted.
-set __ARG="%~1"
+if %__ARG% == "" goto :end
 
 rem -- Try to preview as an image.
 rem    NOTE: Unfortunately chafa does not support the usual -- syntax to end flags.

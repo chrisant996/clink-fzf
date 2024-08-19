@@ -143,6 +143,8 @@ To use the sample script for previewing image files, replace the `--preview "...
 - `--preview "fzf-preview.cmd {}"` if you're not using icons, or
 - `--preview "fzf-preview.cmd {2..}"` if you're using icons.
 
+If your terminal supports sixels, you can also run `set CLINK_FZF_PREVIEW_SIXELS=1` to tell the fzf-preview.cmd script to tell chafa to use sixels.
+
 If you want to customize the flags for `chafa` and `bat`:
 1. Make a copy of the script.
 2. Customize the _copy_ instead of the original.  That way, your changes won't get overwritten when you update clink-fzf (or clink-gizmos).

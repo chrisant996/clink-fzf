@@ -96,6 +96,26 @@ Env Var Name | Description
 `FZF_CTRL_T_COMMAND` | Command to run for collecting files for <kbd>Ctrl</kbd>+<kbd>T</kbd> (the `"luafunc:fzf_file"` function).
 `FZF_ALT_C_COMMAND`  | Command to run for collecting directories for <kbd>Alt</kbd>+<kbd>C</kbd> (the `"luafunc:fzf_directory"` function).
 
+# Unicode content in FZF (known issue in FZF)
+
+As of v0.55.0 (October 2024), FZF assumes UTF8 stdin.  But native Windows programs assume stdin and stdout are in the system codepage.
+
+The default configuration for FZF uses `dir` to generate directory listings.  But the directory listings are in the system codepage, not UTF8.  So FZF misinterprets anything that isn't ASCII text, which can result in garbled text.
+
+You can overcome that with the help of the `dirx` program.
+
+Requirements:
+- [DirX](https://github.com/chrisant996/dirx) v0.9 or newer.
+- [FZF](https://github.com/junegunn/fzf).
+
+Configure the following environment variables:
+- `set FZF_CTRL_T_COMMAND=dirx.exe /b /s /X:d /a:-s-h --bare-relative --utf8 -- $dir`
+- `set FZF_ALT_C_COMMAND=dirx.exe /b /s /X:d /a:d-s-h --bare-relative --utf8 -- $dir`
+
+That should enable full Unicode directory listings.
+
+Issue [fzf/4065](https://github.com/junegunn/fzf/issues/4065) tracks the stdin encoding issue in FZF on Windows, and issue [fzf/3799](https://github.com/junegunn/fzf/issues/3799) tracks the Unicode keyboard input issue in FZF on Windows.
+
 # Icons in FZF
 
 You can optionally have file icons show up in FZF completion lists in Clink.

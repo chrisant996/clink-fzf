@@ -11,12 +11,17 @@ This also includes key bindings for git objects, powered by fzf (ported from [fz
 
 1.  Copy the `fzf.lua` file into your Clink scripts directory (you can run `clink info` to find it, or see [Location of Lua Scripts](https://chrisant996.github.io/clink/clink.html#lua-scripts-location) in the Clink docs for more info).
     - You can also copy the `fzf_git*.*` files into your Clink scripts directory, to enable using fzf to browse git objects.
+    - You can also copy the `fzf_rg.lua` file into your Clink scripts directory, to enable using ripgrep and fzf together to search files and do fuzzy filtering on the results.
 
 2.  Either put `fzf.exe` in a directory listed in the system PATH environment variable, or run `clink set fzf.exe_location <put_full_exe_name_here>` to tell Clink where to find the FZF program.
 
 3.  Set up key bindings.
     - To use the default key bindings, run `clink set fzf.default_bindings true`.
     - To use custom key bindings, add them to your .inputrc file (see [Key Bindings](#key-bindings)).
+
+4.  Optionally install [ripgrep](https://github.com/BurntSushi/ripgrep) for searching files.
+
+5.  Optionally install [bat](https://github.com/sharkdp/bat) for fancy previewing of files.
 
 # How to use
 
@@ -61,6 +66,15 @@ Key | Description
 <kbd>Ctrl</kbd>-<kbd>G</kbd>,<kbd>Ctrl</kbd>-<kbd>W</kbd> | Use fzf for Worktrees
 <kbd>Ctrl</kbd>-<kbd>G</kbd>,<kbd>Ctrl</kbd>-<kbd>E</kbd> | Use fzf for Each ref (git for-each-ref)
 
+## Searching files with ripgrep and fzf
+
+Here are the default key bindings for ripgrep/fzf searches:
+
+Key | Description
+-|-
+<kbd>Ctrl</kbd>-<kbd>X</kbd>,<kbd>F</kbd> | Interactively search files with ripgrep and filter results fzf.
+<kbd>Ctrl</kbd>-<kbd>X</kbd>,<kbd>Ctrl</kbd>-<kbd>F</kbd> | Interactively search files with ripgrep and filter results fzf.
+
 # Overriding the default behaviors
 
 ## Key bindings
@@ -97,6 +111,14 @@ The default key bindings for git objects are listed here in .inputrc file format
 "\C-g\C-l":    "luafunc:fzf_git_reflogs"        # Ctrl-G,Ctrl-L uses fzf for reflogs.
 "\C-g\C-w":    "luafunc:fzf_git_worktrees"      # Ctrl-G,Ctrl-W uses fzf for Worktrees.
 "\C-g\C-e":    "luafunc:fzf_git_eachref"        # Ctrl-G,Ctrl-E uses fzf for Eachref (git for-each-ref).
+```
+
+The default key bindings for ripgrep/fzf searches are listed here in .inputrc file format for convenience:
+
+```inputrc
+# Default key bindings for fzf_ripgrep with Clink.
+"\C-xf":       "luafunc:fzf_ripgrep"            # Ctrl-X,F shows a FZF filtered view with files matching search term.
+"\C-x\C-f":    "luafunc:fzf_ripgrep"            # Ctrl-X,Ctrl-F shows a FZF filtered view with files matching search term.
 ```
 
 The following commands are also available for binding to keys:
@@ -136,6 +158,35 @@ Env Var Name | Description
 `FZF_GIT_PREVIEW_COLOR` | Control colors in the preview window: `always` (default) shows colors, `never` suppresses colors.
 `FZF_GIT_DEFAULT_COLORS` | Defines the default colors for fzf.  This is passed to fzf via the `--color` flag.
 `FZF_GIT_EDITOR`    | Defines the command for editing a file.  Falls back to `%EDITOR%` or `notepad.exe` if not set.
+
+## FZF ripgrep options
+
+You can specify options for ripgrep and FZF when searching files:
+
+Env Var Name | Description
+-|-
+`FZF_RG_EDITOR`     | Command to launch editor (expands placeholder tokens).
+`FZF_RG_FZF_OPTIONS` | Options to add to the fzf commands.
+`FZF_RG_RG_OPTIONS` | Options to add to the rg commands.
+
+## Configuring the editor to launch when searching files
+
+The editor to launch is chosen from the following, in priority order:
+
+1. The `fzf_rg.editor` Clink setting (this expands placeholders; see below).
+2. The `FZF_RG_EDITOR` environment variable (this expands placeholders; see below).
+3. The `EDITOR` environment variable (this does not support placeholders).
+4. If none of the above are set, then `notepad.exe` is used.
+
+For all of these, the string is a command line and may contain flags (for example, `myeditor.exe --flag1 --flag2`).  The filename is automatically appended to the end of the command line, with quotes when appropriate.
+
+The `fzf_rg.editor` setting and `FZF_RG_EDITOR` environment variable supporting expanding certain placeholders:
+
+Placeholder | Description
+-|-
+`{file}` | This is replaced with the selected filename, and prevents automatically appending the filename to the end of the command line.  The filename is automatically quoted when needed, but if a quote is adjacent to {file} then quoting is disabled (e.g. an editor might require "{file}@{line}").
+`{line}` | This is replaced with the selected line number.
+`{$envvar}` | This is replaced with the value of `%envvar%` (with any newlines replaced with spaces).
 
 ## File and directory list commands
 

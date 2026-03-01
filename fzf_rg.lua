@@ -225,6 +225,7 @@ local function infer_placeholders(command, found_placeholders, line)
 
     -- 1. Modern IDEs & Cross-platform (VS Code, Zed, Sublime).
     if test("code") or
+            test("vscodium") or
             test("zed") then
         append_placeholder("--goto {file}")
         if not isnilorempty(line) then

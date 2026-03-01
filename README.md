@@ -75,6 +75,8 @@ Key | Description
 <kbd>Ctrl</kbd>-<kbd>X</kbd>,<kbd>F</kbd> | Interactively search files with ripgrep and filter results fzf.
 <kbd>Ctrl</kbd>-<kbd>X</kbd>,<kbd>Ctrl</kbd>-<kbd>F</kbd> | Interactively search files with ripgrep and filter results fzf.
 
+You can also run the `fzf_fg.cmd` script to invoke searching files with ripgrep and fzf.
+
 # Overriding the default behaviors
 
 ## Key bindings

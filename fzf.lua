@@ -427,6 +427,8 @@ local function get_fzf(mode, addl_options)
         options = join_str('--reverse --scheme=path', options)
         options = join_str(options, os.getenv('FZF_CTRL_T_OPTS'))
     elseif mode == 'history' then
+        local header = "DEL (delete history entry)  CTRL-R (toggle sort mode)"
+        options = join_str('--header "'..header..'" --header-border line', options)
         options = join_str('--scheme=history --bind=ctrl-r:toggle-sort', options)
         options = join_str(options, os.getenv('FZF_CTRL_R_OPTS'))
         options = join_str(options, '+m')

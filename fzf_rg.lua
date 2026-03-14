@@ -517,7 +517,8 @@ local function get_color_mode()
 end
 
 local function search_in_paths(...)
-    local paths = (os.getenv("path") or ""):explode(";")
+    local pathstr = (os.getenv("path") or "")
+    local paths = (".;"..pathstr):explode(";")
     local names = {...}
     for _, dir in ipairs(paths) do
         for _, name in ipairs(names) do
@@ -557,7 +558,10 @@ end
 local function get_reload_command()
     -- Check for rg in the system PATH.  Do this every time until found, in
     -- case the user installs rg in response to the message.
-    local rg = has_rg or search_in_paths("rg.exe", "rg.cmd", "rg.bat")
+    -- Only looks for rg.exe (not .cmd or .bat) because quoting/escaping works
+    -- differently for batch scripts than for executables, and could lead to
+    -- unexpected and undesirable behavior (such as accidental code injection).
+    local rg = has_rg or search_in_paths("rg.exe")
     if not rg then
         return table.concat({
             "echo Unable to find rg in the system PATH.",
@@ -571,7 +575,7 @@ local function get_reload_command()
     -- This is the ripgrep command to run.
     local rg_command = table.concat({
         "2>&1", -- So that errors can be seen, esp. from bad FZF_RG_RG_OPTIONS.
-        "rg",
+        "rg.exe",
         "--column",
         "--line-number",
         "--no-heading",

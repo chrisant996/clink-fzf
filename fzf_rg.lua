@@ -55,8 +55,8 @@
 --
 -- EDITOR:
 --
--- The following token replacements can be used in fzf_rg.editor and
--- FZF_RG_EDITOR:
+-- The following token replacements can be used in the fzf_rg.editor Clink
+-- setting and in the FZF_RG_EDITOR environment variable:
 --      - {file} is replaced with the selected filename.  The filename is
 --        automatically quoted when needed, but if a quote is adjacent to
 --        {file} then quoting is disabled (e.g. an editor might require
@@ -77,6 +77,28 @@
 --      - JetBrains (idea, storm, ..):  {editor} --line {line} {file}
 --      - vim, nano:                    {editor} +{line} {file}
 --      - notepad:                      {editor} {file}
+--
+--
+-- CLINK SETTINGS:
+--
+-- The available settings are as follows.
+-- These settings can be controlled via 'clink set'.
+--
+--      fzf_rg.show_preview         Controls the default for showing a file
+--                                  preview window in fzf.  Values are:
+--                                      right, bottom, off
+--
+--      fzf_rg.height               Height to use for the fzf --height flag.
+--                                  (See fzf documentation on --height.)
+--
+--      fzf.exe_location            Specifies the location of fzf.exe if not in
+--                                  the system PATH.  This isn't just a
+--                                  directory name, it's the full path name of
+--                                  the exe file.
+--                                  For example, c:\tools\fzf.exe or etc.
+--
+--                              NOTE:  the fzf.exe_location setting is shared by
+--                              multiple fzf scripts.
 --
 --
 -- ENVIRONMENT VARIABLES:
@@ -428,25 +450,36 @@ end
 -- of the script that can't fully support the goal of "newest version wins".
 
 local function maybe_add(name, ...)
-    if settings.get(name) == nil then
+    if type(name) == "string" and settings.get(name) == nil then
         settings.add(name, ...)
     end
 end
 
-maybe_add("fzf_rg.show_preview", {"right","bottom","off"}, "Show preview window by default in fzf",
+-- fzf.exe_location is in common with fzf.lua.
+maybe_add("fzf.exe_location", "",
+          "Location of fzf.exe if not on the PATH",
+[[This isn't just a directory name, it's the full path name of the
+exe file.  For example, c:\tools\fzf.exe or etc.]])
+
+maybe_add("fzf_rg.show_preview", {"right","bottom","off"},
+          "Show preview window by default in fzf",
 [[The default is 'right', which shows a preview window on the right side.
 Set to 'bottom' to show a preview window on the bottom side.
 Set to 'off' to hide the preview window by default.
 Regardless whether the preview window is initially shown, it can be toggled
 on/off at any time while using fzf.
 
-The preview automatically finds and uses batcat.exe or bat.exe if available in
-the system PATH, otherwise it shows a plain text preview.
+The preview automatically finds and uses batcat.exe or bat.exe if available
+in the system PATH, otherwise it shows a plain text preview.
 
-The bat tool is available here:  https://github.com/sharkdp/bat]]
-)
+The bat tool is available here:  https://github.com/sharkdp/bat]])
 
-maybe_add("fzf_rg.editor", "", "Configures how to invoke the editor",
+maybe_add("fzf_rg.height", "75%",
+          "Height to use for the --height flag",
+[[See fzf documentation on --height for possible values.]])
+
+maybe_add("fzf_rg.editor", "",
+          "Configures how to invoke the editor",
 [[This is a command line to execute for opening a file into an editor.  If this
 is not set, then %FZF_RG_EDITOR% is used instead (and supports the same token
 replacements).  If neither are found, then %EDITOR% or notepad are used and the
@@ -474,8 +507,7 @@ Usually an editor supports one of the following formats:
     - vim, nano:                    {editor} +{line} {file}
     - notepad:                      {editor} {file}
 
-If setting from the command line you may need to escape the " character as \".]]
-)
+If setting from the command line you may need to escape the " character as \".]])
 
 --------------------------------------------------------------------------------
 -- Helpers.
@@ -500,6 +532,26 @@ end
 local function escape_quotes(s, how)
     how = how or '\\"'
     return s:gsub('"', how)
+end
+
+local function get_fzf()
+    local command = settings.get("fzf.exe_location")
+    if not command or command == "" then
+        command = "fzf.exe"
+    end
+    command = command:gsub('"', "")
+
+    -- It's important to invoke an .exe file, otherwise quoting for --query can
+    -- malfunction and potentially fall into a code injection situation.
+    if path.getname(command) ~= command then
+        local command_path = path.toparent(command)
+        command = path.join(command_path, path.getbasename(command)..".exe")
+    else
+        command = path.getbasename(command)..".exe"
+    end
+
+    command = '"'..command..'"'
+    return command
 end
 
 local function get_reload_command()
@@ -724,12 +776,17 @@ function fzf_ripgrep(rl_buffer, line_state) -- luacheck: no unused
 
     -- {q} is the placeholder for the fzf input string.
 
+    local height = settings.get('fzf_rg.height') or ''
+    if height ~= '' then
+        height = '--height '..height
+    end
+
     -- If the line is empty, let ripgrep prompt for input inside fzf.
     -- Otherwise, use the current line as the initial ripgrep query.
     local reload_command = get_reload_command()
     local expect = "alt-i"
     local args = {
-        "--height 75%",
+        height,
         "--reverse",
         -- Allow some customization.
         os.getenv("FZF_RG_FZF_OPTIONS") or "",
@@ -783,7 +840,8 @@ function fzf_ripgrep(rl_buffer, line_state) -- luacheck: no unused
         if not isnilorempty(settings.get("fzf_rg.editor")) then
             save_var(old_vars, "FZF_RG_EDITOR", settings.get("fzf_rg.editor"))
         end
-        local handle = io.popen("fzf")
+        local exe = get_fzf()
+        local handle = io.popen(exe)
         restore_vars(old_vars)
         if not handle then
             rl_buffer:ding()

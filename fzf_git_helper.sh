@@ -56,6 +56,17 @@ __fzf_git_pager() {
   echo "${pager:-cat}"
 }
 
+__fzf_git_list_files() {
+  local root
+  root=$(git rev-parse --show-toplevel)
+  git -c core.quotePath=false -c color.status=$(__fzf_git_color) status --short --no-branch --untracked-files=all
+  git -c core.quotePath=false ls-files "$root" | grep -vxFf <(
+    git -c core.quotePath=false status --short --untracked-files=no |
+      cut -c4- | sed -e 's/.* -> //' -e '/^"[^"\\]*"$/ { s/^"//;s/"$//; }'
+    echo :
+  ) | sed 's/^/   /'
+}
+
 if [[ $1 == --list ]]; then
   shift
   if [[ $# -eq 1 ]]; then
@@ -69,14 +80,19 @@ if [[ $1 == --list ]]; then
       git log --date=short --format="%C(green)%C(bold)%cd %C(auto)%h%d %s (%an)" --graph --color=$(__fzf_git_color) "$@" $LIST_OPTS
     }
     case "$1" in
+      files)
+        echo 'CTRL-O (open in browser) ╱ ALT-E (open in editor)'
+        echo 'ALT-A (stage file) ╱ ALT-R (restore file)'
+        __fzf_git_list_files
+        ;;
       branches)
         echo 'CTRL-O (open in browser) ╱ ALT-A (show all branches)'
-        echo 'ALT-H (list commit hashes)'
+        echo 'ALT-H (list commit hashes) ╱ ALT-D (delete branch)'
         branches
         ;;
       all-branches)
         echo 'CTRL-O (open in browser) ╱ ALT-ENTER (accept without remote)'
-        echo 'ALT-H (list commit hashes)'
+        echo 'ALT-H (list commit hashes) ╱ ALT-D (delete branch)'
         branches -a
         ;;
       hashes)
@@ -193,22 +209,14 @@ __fzf_git=$(readlink -f "$__fzf_git" 2> /dev/null || /usr/bin/ruby --disable-gem
 
 _fzf_git_files() {
   _fzf_git_check || return
-  local root query extract_file_name
-  root=$(git rev-parse --show-toplevel)
+  local query extract_file_name
   [[ -n "$(git rev-parse --show-prefix)" ]] && query='!../ '
 
   read -r -d "" extract_file_name <<'EOF'
 "$(cut -c4- <<< {} | sed 's/.* -> //;s/^"//;s/"$//;s/\\"/"/g')"
 EOF
 
-  (
-    git -c core.quotePath=false -c color.status=$(__fzf_git_color) status --short --no-branch --untracked-files=all
-    git -c core.quotePath=false ls-files "$root" | grep -vxFf <(
-      git -c core.quotePath=false status --short --untracked-files=no |
-        cut -c4- | sed -e 's/.* -> //' -e '/^"[^"\\]*"$/ { s/^"//;s/"$//; }'
-      echo :
-    ) | sed 's/^/   /'
-  ) |
+  __fzf_git_list_files |
     _fzf_git_fzf -m --ansi --nth 2..,.. \
       --border-label '📁 Files ' \
       --header 'CTRL-O (open in browser) ╱ ALT-E (open in editor)' \

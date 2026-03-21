@@ -872,6 +872,7 @@ function fzf_git_branches(rl_buffer, line_state)
         [[--bind 'ctrl-/:change-preview-window(down,70%|hidden|)' \
         --bind "ctrl-o:execute-silent:bash \"$__fzf_git\" --list branch {}" \
         --bind "alt-a:change-border-label(🌳 All branches)+reload:bash \"$__fzf_git\" --list all-branches" \
+        --bind "alt-d:execute-silent($helper delete_branch {})+reload:]]..input_command:gsub("\"", "\\\"")..[[" \
         --bind "alt-h:accept" \
         --bind "alt-enter:accept" \
         --expect=alt-enter,alt-h \

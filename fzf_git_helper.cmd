@@ -2,6 +2,7 @@
 setlocal
 
 if "%~1" == "branches" goto :branches
+if "%~1" == "delete_branch" goto :delete_branch
 if "%~1" == "eachref" goto :eachref
 if "%~1" == "edit_file" goto :edit_file
 if "%~1" == "edit_git_show" goto :edit_git_show
@@ -25,6 +26,12 @@ goto :eof
 set ARG=%~2
 for /f "tokens=1 delims= " %%a in ("%ARG:~2%") do set ARG=%%a
 git log --oneline --graph --date=short --color=%__fzf_git_color_% --pretty="format:%%C(auto)%%cd %%h%%d %%s" %ARG% --
+goto :eof
+
+:delete_branch
+set ARG=%~2
+for /f "tokens=1 delims= " %%a in ("%ARG:~2%") do set ARG=%%a
+git branch -D %ARG%
 goto :eof
 
 :eachref

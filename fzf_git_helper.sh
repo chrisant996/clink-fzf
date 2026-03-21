@@ -71,12 +71,12 @@ if [[ $1 == --list ]]; then
     case "$1" in
       branches)
         echo 'CTRL-O (open in browser) ╱ ALT-A (show all branches)'
-        echo 'ALT-H (list commit hashes)'
+        echo 'ALT-H (list commit hashes) ╱ ALT-D (delete branch)'
         branches
         ;;
       all-branches)
         echo 'CTRL-O (open in browser) ╱ ALT-ENTER (accept without remote)'
-        echo 'ALT-H (list commit hashes)'
+        echo 'ALT-H (list commit hashes) ╱ ALT-D (delete branch)'
         branches -a
         ;;
       hashes)

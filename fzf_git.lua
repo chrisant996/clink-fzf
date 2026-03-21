@@ -804,13 +804,18 @@ function fzf_git_files(rl_buffer, line_state)
                    :gsub("^.* -> ", "")     -- | sed 's/.* -> //'
     end
 
+    local input_command = [[bash "]]..__fzf_git_sh():gsub("\\", "/")..[[" --list files]]
+
     do_fzf_git(rl_buffer, line_state,
-        list_files,
+        nil,
         [[-m --ansi --nth 2..,.. \
         --border-label '📁 Files ' \
-        --header 'CTRL-O (open in browser) ╱ ALT-E (open in editor)' \
-        --bind "ctrl-o:execute-silent:$helper list_file {}" ]]..
+        --header-lines 2 ]]..
+        [[--bind "start:reload:]]..input_command:gsub("\"", "\\\"")..[[" ]]..
+        [[--bind "ctrl-o:execute-silent:$helper list_file {}" ]]..
         bind_alt_e_edit_file..
+        [[--bind "alt-a:execute-silent(git add {+2..})+reload:]]..input_command:gsub("\"", "\\\"")..[[" ]]..
+        [[--bind "alt-r:execute-silent(git restore {+2..})+reload:]]..input_command:gsub("\"", "\\\"")..[[" ]]..
         [[--preview "$helper files {}"]],
         post_process
     )

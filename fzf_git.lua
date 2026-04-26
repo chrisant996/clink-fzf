@@ -233,9 +233,12 @@ local function get_git_bin_dir()
     local name = "git.exe"
     local paths = (os.getenv("path") or ""):explode(";")
     for _, dir in ipairs(paths) do
-        local usrbin = path.join(path.toparent(dir), "usr\\bin")
-        if os.isfile(path.join(usrbin, "bash.exe")) then
-            return usrbin
+        local file = path.join(dir, name)
+        if os.isfile(file) then
+            local usrbin = path.join(path.toparent(dir), "usr\\bin")
+            if os.isfile(path.join(usrbin, "bash.exe")) then
+                return usrbin
+            end
         end
     end
 end

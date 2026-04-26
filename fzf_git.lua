@@ -430,6 +430,20 @@ local function chcp(cp)
     return ret
 end
 
+local function save_var(vars, name, value, append)
+    vars[name] = os.getenv(name) or ""
+    if append and vars[name] ~= "" then
+        value = vars[name].." "..value
+    end
+    os.setenv(name, value)
+end
+
+local function restore_vars(vars)
+    for name, value in pairs(vars) do
+        os.setenv(name, (value ~= "") and value or nil)
+    end
+end
+
 local function insert_matches(rl_buffer, matches, post_process, expect)
     if matches and matches[1] then
         rl_buffer:beginundogroup()
@@ -562,25 +576,20 @@ local function do_fzf_git(rl_buffer, line_state, pipe_command, fzf_args, post_pr
     local program, options = _fzf_git_fzf(fzf_args)
 
     local orig_cp = chcp(65001)
-    local old___fzf_git_color = os.getenv("__fzf_git_color")
-    local old___fzf_git_color_ = os.getenv("__fzf_git_color_")
-    local old___fzf_git_cat = os.getenv("__fzf_git_cat")
-    local old___fzf_git_editor = os.getenv("__fzf_git_editor")
-    local old___fzf_git_sh = os.getenv("__fzf_git_sh")
-    local old_fzf_default_opts = os.getenv("FZF_DEFAULT_OPTS")
+    local old_vars = {}
     local old_path = os.getenv("PATH")
 
-    os.setenv("__fzf_git_color", __fzf_git_color())
-    os.setenv("__fzf_git_color_", __fzf_git_color(true))
-    os.setenv("__fzf_git_cat", __fzf_git_cat())
-    os.setenv("__fzf_git_editor", __fzf_git_editor())
-    os.setenv("__fzf_git_sh", __fzf_git_sh())
-    os.setenv("FZF_DEFAULT_OPTS", join_str(old_fzf_default_opts, options))
+    save_var(old_vars, "__fzf_git_color", __fzf_git_color())
+    save_var(old_vars, "__fzf_git_color_", __fzf_git_color(true))
+    save_var(old_vars, "__fzf_git_cat", __fzf_git_cat())
+    save_var(old_vars, "__fzf_git_editor", __fzf_git_editor())
+    save_var(old_vars, "__fzf_git_sh", __fzf_git_sh())
+    save_var(old_vars, "FZF_DEFAULT_OPTS", options, true--[[append]])
 
     -- Prepend the Git bin dir to the system PATH so that bash, awk, sed, and
     -- so on can be found automatically, without needing to adjust the command
     -- syntax copied from the fzf-git.sh script.
-    os.setenv("PATH", usrbin..";"..old_path)
+    save_var(old_vars, "PATH", usrbin..";"..old_path)
 
     if diag then
         print("FZF_DEFAULT_OPTS", os.getenv("FZF_DEFAULT_OPTS"))
@@ -629,15 +638,7 @@ local function do_fzf_git(rl_buffer, line_state, pipe_command, fzf_args, post_pr
         matches = run_command(program, expect)
     end
 
-    os.setenv("PATH", old_path)
-
-    os.setenv("FZF_DEFAULT_OPTS", old_fzf_default_opts)
-    os.setenv("__fzf_git_sh", old___fzf_git_sh)
-    os.setenv("__fzf_git_editor", old___fzf_git_editor)
-    os.setenv("__fzf_git_cat", old___fzf_git_cat)
-    os.setenv("__fzf_git_color_", old___fzf_git_color_)
-    os.setenv("__fzf_git_color", old___fzf_git_color)
-
+    restore_vars(old_vars)
     chcp(orig_cp)
 
     if matches then

@@ -230,11 +230,12 @@ local function search_in_paths(name)
 end
 
 local function get_git_bin_dir()
-    local _, dir = search_in_paths("git.exe")
-    if dir then
-        dir = path.join(path.toparent(dir), "usr\\bin")
-        if os.isfile(path.join(dir, "bash.exe")) then
-            return dir
+    local name = "git.exe"
+    local paths = (os.getenv("path") or ""):explode(";")
+    for _, dir in ipairs(paths) do
+        local usrbin = path.join(path.toparent(dir), "usr\\bin")
+        if os.isfile(path.join(usrbin, "bash.exe")) then
+            return usrbin
         end
     end
 end

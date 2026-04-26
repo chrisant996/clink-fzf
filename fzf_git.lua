@@ -566,6 +566,7 @@ local function do_fzf_git(rl_buffer, line_state, pipe_command, fzf_args, post_pr
 
     local usrbin = get_git_bin_dir()
     if not usrbin then
+        rl_buffer:beginoutput()
         print("fzf_git error:  Unable to find git\\usr\\bin directory.")
         return
     end
